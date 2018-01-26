@@ -126,8 +126,8 @@ FileUtils::eEndianness BinaryStream::HostEndianOrder() const {
 bool BinaryStream::should_flip() const {
     return stream_order != HostEndianOrder();
 }
-unsigned int BinaryStream::write_bytes_endian_aware(const void* bytes, unsigned int count) const {
-    unsigned int bytes_written = 0;
+std::size_t BinaryStream::write_bytes_endian_aware(const void* bytes, std::size_t count) const {
+    std::size_t bytes_written = 0;
     if(should_flip()) {
         unsigned char* copy = (unsigned char*)_alloca(count);
         CopyReversed(copy, bytes, count);
@@ -137,17 +137,17 @@ unsigned int BinaryStream::write_bytes_endian_aware(const void* bytes, unsigned 
     }
     return bytes_written;
 }
-unsigned int BinaryStream::read_bytes_endian_aware(void* bytes, unsigned int count) {
-    unsigned int bytes_read = read_bytes(bytes, count);
+std::size_t BinaryStream::read_bytes_endian_aware(void* bytes, std::size_t count) {
+    std::size_t bytes_read = read_bytes(bytes, count);
     if(should_flip()) {
         CopyReversed(reinterpret_cast<unsigned char*>(bytes), bytes, count);
     }
     return bytes_read;
 }
-void BinaryStream::CopyReversed(unsigned char* copy, const void* bytes, unsigned int count) const {
+void BinaryStream::CopyReversed(unsigned char* copy, const void* bytes, std::size_t count) const {
     copy = const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(bytes));
-    unsigned int last_index = count - 1u;
-    unsigned int middle = count / 2u;
+    std::size_t last_index = count - 1u;
+    std::size_t middle = count / 2u;
     for(unsigned int b = 0; b < middle; ++b) {
         std::swap(copy[b], copy[last_index - b]);
     }
@@ -327,7 +327,7 @@ void FileBinaryStream::close() {
         file_pointer = nullptr;
     }
 }
-unsigned int FileBinaryStream::read_bytes(void* out_buffer, const unsigned int count) {
+std::size_t FileBinaryStream::read_bytes(void* out_buffer, const std::size_t count) {
     unsigned int bytes_read = 0;
     if(is_open()) {
         bytes_read = (unsigned int)fread(out_buffer, 1, count, file_pointer);
@@ -336,10 +336,10 @@ unsigned int FileBinaryStream::read_bytes(void* out_buffer, const unsigned int c
 
     return bytes_read;
 }
-unsigned int FileBinaryStream::write_bytes(const void* out_buffer, const unsigned int count) const {
+std::size_t FileBinaryStream::write_bytes(const void* buffer, const std::size_t size) const {
     unsigned int bytes_read = 0;
     if(is_open()) {
-        bytes_read = (unsigned int)fwrite(out_buffer, 1, count, file_pointer);
+        bytes_read = (unsigned int)fwrite(buffer, 1, size, file_pointer);
     }
 
     return bytes_read;

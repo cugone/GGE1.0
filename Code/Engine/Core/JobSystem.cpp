@@ -184,8 +184,8 @@ void JobSystem::WaitAndRelease(Job* job) {
     JobSystem::Release(job);
 }
 
-unsigned int JobSystem::GetLiveJobCount() {
-    unsigned int count = 0;
+std::size_t JobSystem::GetLiveJobCount() {
+    std::size_t count = 0;
     for(auto& i : this->queues) {
         ThreadSafeQueue<Job*>& queue = *i;
         count += queue.size();
@@ -193,7 +193,7 @@ unsigned int JobSystem::GetLiveJobCount() {
     return count;
 }
 
-unsigned int JobSystem::GetActiveJobCount() {
+std::size_t JobSystem::GetActiveJobCount() {
     return 0;
 }
 
@@ -244,6 +244,10 @@ void JobConsumer::consume_for_ms(unsigned int ms) {
     while(end_time - start_time < ms_t && consume_job()) {
         end_time = GetCurrentTimeSeconds();
     }
+}
+
+Job::~Job() {
+	delete user_data;
 }
 
 void Job::depends_on(Job* dependency) {

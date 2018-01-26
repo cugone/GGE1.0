@@ -25,7 +25,7 @@ MeshSkeletonInstance::~MeshSkeletonInstance() {
     _skinTransforms = nullptr;
 }
 
-Matrix4 MeshSkeletonInstance::get_joint_global_transform(unsigned int joint_idx) const {
+Matrix4 MeshSkeletonInstance::get_joint_global_transform(std::size_t joint_idx) const {
     Matrix4 result = current_pose.local_transforms[joint_idx];
     for(MeshSkeleton::Joint* cur_joint_parent = get_joint_parent(joint_idx);
         cur_joint_parent != nullptr;
@@ -45,13 +45,13 @@ Matrix4 MeshSkeletonInstance::get_joint_global_transform(const std::string& join
     }
     return result;
 }
-MeshSkeleton::Joint* MeshSkeletonInstance::get_joint_parent(unsigned int joint_idx) const {
+MeshSkeleton::Joint* MeshSkeletonInstance::get_joint_parent(std::size_t joint_idx) const {
     return (skeleton->get_joint_parent(joint_idx));
 }
 MeshSkeleton::Joint* MeshSkeletonInstance::get_joint_parent(const std::string& joint_idx) const {
     return (skeleton->get_joint_parent(joint_idx));
 }
-unsigned int MeshSkeletonInstance::get_joint_count() const {
+std::size_t MeshSkeletonInstance::get_joint_count() const {
     return skeleton->get_joint_count();
 }
 void MeshSkeletonInstance::apply_motion(MeshMotion* motion, const float time) {
@@ -98,11 +98,11 @@ void MeshSkeletonInstance::Render() const {
 }
 
 void MeshSkeletonInstance::InitializeSkinTransforms() {
-    unsigned int size = get_joint_count();
+    std::size_t size = get_joint_count();
     _skinTransforms_data.resize(size);
     for(auto& skinTransform : _skinTransforms_data) {
         skinTransform = Matrix4::GetIdentity();
     }
-    _skinTransforms = _renderer->_rhi_device->CreateStructuredBuffer(_skinTransforms_data.data(), sizeof(Matrix4), size, BufferUsage::DYNAMIC, BufferBindUsage::SHADER_RESOURCE);
+    _skinTransforms = _renderer->_rhi_device->CreateStructuredBuffer(_skinTransforms_data.data(), sizeof(Matrix4), static_cast<unsigned int>(size), BufferUsage::DYNAMIC, BufferBindUsage::SHADER_RESOURCE);
     _renderer->_rhi_context->SetStructuredBuffer(0, _skinTransforms);
 }

@@ -153,7 +153,7 @@ public:
     void DrawRegularPolygonOutline(const Vertex2D& centerPositionEdgeColor, float numSides, float radius);
     void DrawCircle(const Vertex2D& centerPositionEdgeColor, float numSides, float radius);
 
-    void DrawPolygonOutline(const Vertex3D* vertecies, int vertexCount);
+    void DrawPolygonOutline(const Vertex3D* vertecies, std::size_t vertexCount);
 
     void DrawPoint(const Vertex3D& vertex);
     void DrawLine(const Vertex3D& startVertex, const Vertex3D& endVertex, float lineThickness = 2.0f);
@@ -163,7 +163,7 @@ public:
     void DrawSphere(const Renderer::SphereType& type, const Vertex3D& centerPositionEdgeColor, int tessellationExponent, float radius, float lineWidth = 2.0f);
     void DrawTeapot(const Vertex3D& centerPositionEdgeColor, float size = 1.0f, float lineWidth = 2.0f);
 
-    void DrawVertexes(const Vertex3D* vertexArray, int numVertex, const Renderer::PrimitiveDrawMode& primitiveDrawMode);
+    void DrawVertexes(const Vertex3D* vertexArray, std::size_t numVertex, const Renderer::PrimitiveDrawMode& primitiveDrawMode);
     void DrawVertexVbo(int vboId, int numVertex, const PrimitiveDrawMode& primitiveDrawMode);
 
     void DrawFilledTriangle(const Vertex2D& vertexOne, const Vertex2D& vertexTwo, const Vertex2D& vertexThree);
@@ -177,6 +177,7 @@ public:
     void ApplyMatrix(const Matrix4& mat);
     void LoadMatrix(const Matrix4& mat);
     Matrix4 GetCurrentModelViewMatrix();
+    Matrix4 GetCurrentProjectionMatrix();
 
     void PushMatrix();
     void Translate(const Vector3& translate);

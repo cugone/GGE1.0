@@ -23,25 +23,30 @@ AudioSystem::~AudioSystem()
 
 
 //---------------------------------------------------------------------------
-void AudioSystem::InitializeFMOD()
-{
+void AudioSystem::InitializeFMOD() {
 	const int MAX_AUDIO_DEVICE_NAME_LEN = 256;
-	FMOD_RESULT result;
+    const int MAX_AUDIO_CHANNELS_FULL = 1024;
+    const int MAX_AUDIO_CHANNELS_HALF = MAX_AUDIO_CHANNELS_FULL >> 1;
+    const int MAX_AUDIO_CHANNELS_SMALL = MAX_AUDIO_CHANNELS_HALF >> 1;
+    const int MAX_AUDIO_CHANNELS_TINY = MAX_AUDIO_CHANNELS_SMALL >> 1;
+    const int MAX_AUDIO_CHANNELS_MICRO = MAX_AUDIO_CHANNELS_TINY >> 1;
+    const int MAX_AUDIO_CHANNELS_POTATO = MAX_AUDIO_CHANNELS_MICRO >> 1;
 	unsigned int fmodVersion;
 	int numDrivers;
-	FMOD_SPEAKERMODE speakerMode;
-	FMOD_CAPS deviceCapabilities;
-	char audioDeviceName[ MAX_AUDIO_DEVICE_NAME_LEN ];
+    FMOD_SPEAKERMODE deviceSpeakerMode = FMOD_SPEAKERMODE_STEREO;
+    int speakerModeChannels = 0;
+    char* audioDeviceName = nullptr;
+    FMOD_GUID deviceGuid;
+    int deviceSampleRate = 0;
 
 	// Create a System object and initialize.
-	result = FMOD::System_Create( &m_fmodSystem );
+	FMOD_RESULT result = FMOD::System_Create( &m_fmodSystem );
 	ValidateResult( result );
-
+    
 	result = m_fmodSystem->getVersion( &fmodVersion );
 	ValidateResult( result );
 
-	if( fmodVersion < FMOD_VERSION )
-	{
+	if( fmodVersion < FMOD_VERSION ) {
 		DebuggerPrintf( "Engine/Audio SYSTEM ERROR!  Your FMOD .dll is of an older version (0x%08x == %d) than that the .lib used to compile this code (0x%08x == %d).\n", fmodVersion, fmodVersion, FMOD_VERSION, FMOD_VERSION );
 	}
 
@@ -52,57 +57,54 @@ void AudioSystem::InitializeFMOD()
 	{
 		result = m_fmodSystem->setOutput( FMOD_OUTPUTTYPE_NOSOUND );
 		ValidateResult( result );
-	}
-	else
-	{
-		result = m_fmodSystem->getDriverCaps( 0, &deviceCapabilities, 0, &speakerMode );
+	} else {
+        result = m_fmodSystem->setOutput(FMOD_OUTPUTTYPE_AUTODETECT);
+        ValidateResult(result);
+
+		result = m_fmodSystem->getDriverInfo(0, audioDeviceName, MAX_AUDIO_DEVICE_NAME_LEN, &deviceGuid, &deviceSampleRate, &deviceSpeakerMode, &speakerModeChannels);
 		ValidateResult( result );
 
-		// Set the user selected speaker mode.
-		result = m_fmodSystem->setSpeakerMode( speakerMode );
-		ValidateResult( result );
-
-		if( deviceCapabilities & FMOD_CAPS_HARDWARE_EMULATED )
-		{
-			// The user has the 'Acceleration' slider set to off! This is really bad
-			// for latency! You might want to warn the user about this.
-			result = m_fmodSystem->setDSPBufferSize( 1024, 10 );
-			ValidateResult( result );
-		}
-
-		result = m_fmodSystem->getDriverInfo( 0, audioDeviceName, MAX_AUDIO_DEVICE_NAME_LEN, 0 );
-		ValidateResult( result );
-
-		if( strstr( audioDeviceName, "SigmaTel" ) )
-		{
-			// Sigmatel sound devices crackle for some reason if the format is PCM 16bit.
-			// PCM floating point output seems to solve it.
-			result = m_fmodSystem->setSoftwareFormat( 48000, FMOD_SOUND_FORMAT_PCMFLOAT, 0,0, FMOD_DSP_RESAMPLER_LINEAR );
-			ValidateResult( result );
-		}
 	}
 
-	result = m_fmodSystem->init( 100, FMOD_INIT_NORMAL, 0 );
-	if( result == FMOD_ERR_OUTPUT_CREATEBUFFER )
-	{
-		// Ok, the speaker mode selected isn't supported by this sound card. Switch it
-		// back to stereo...
-		result = m_fmodSystem->setSpeakerMode( FMOD_SPEAKERMODE_STEREO );
-		ValidateResult( result );
+    result = m_fmodSystem->setSoftwareFormat(deviceSampleRate, deviceSpeakerMode, 0);
 
-		// ... and re-init.
-		result = m_fmodSystem->init( 100, FMOD_INIT_NORMAL, 0 );
-		ValidateResult( result );
+	result = m_fmodSystem->init(MAX_AUDIO_CHANNELS_FULL, FMOD_INIT_NORMAL, nullptr);
+	if( result == FMOD_ERR_TOOMANYCHANNELS ) {
+		//Channel count is too high, lower and re-init.
+        result = m_fmodSystem->init(MAX_AUDIO_CHANNELS_HALF, FMOD_INIT_NORMAL, nullptr);
+        if(result == FMOD_ERR_TOOMANYCHANNELS) {
+            result = m_fmodSystem->init(MAX_AUDIO_CHANNELS_SMALL, FMOD_INIT_NORMAL, nullptr);
+            if(result == FMOD_ERR_TOOMANYCHANNELS) {
+                result = m_fmodSystem->init(MAX_AUDIO_CHANNELS_TINY, FMOD_INIT_NORMAL, nullptr);
+                if(result == FMOD_ERR_TOOMANYCHANNELS) {
+                    result = m_fmodSystem->init(MAX_AUDIO_CHANNELS_MICRO, FMOD_INIT_NORMAL, nullptr);
+                    if(result == FMOD_ERR_TOOMANYCHANNELS) {
+                        result = m_fmodSystem->init(MAX_AUDIO_CHANNELS_POTATO, FMOD_INIT_NORMAL, nullptr);
+                        if(result == FMOD_ERR_TOOMANYCHANNELS) {
+                            DebuggerPrintf("Engine/Audio SYSTEM ERROR! Your audio device cannot support the minimum %i audio channels required.", MAX_AUDIO_CHANNELS_POTATO);
+                        }
+                    }
+                }
+            }
+        }
 	}
+    ValidateResult(result);
 }
 
 
 //-----------------------------------------------------------------------------------------------
-void AudioSystem::ShutDownFMOD()
-{
-//	FMOD_RESULT result = FMOD_OK;
-//	result = FMOD_System_Close( m_fmodSystem );
-//	result = FMOD_System_Release( m_fmodSystem );
+void AudioSystem::ShutDownFMOD() {
+    FMOD_RESULT result = FMOD_OK;
+    for(auto*& channel : m_registeredChannels) {
+        auto channelAsFmodChannel = reinterpret_cast<FMOD::Channel*>(channel);
+        channelAsFmodChannel->stop();
+        channel = nullptr;
+    }
+    for(auto*& sound : m_registeredSounds) {
+        sound->release();
+        sound = nullptr;
+    }
+    result = m_fmodSystem->release(); //FMOD::System::Close is called by this function so is not necessary to call here.
 	m_fmodSystem = nullptr;
 }
 
@@ -132,7 +134,7 @@ SoundID AudioSystem::CreateSoundFromMemory(const std::string& name, const std::v
     ZeroMemory(&fmod_soundInfo, sizeof(FMOD_CREATESOUNDEXINFO));
 
     fmod_soundInfo.cbsize = sizeof(FMOD_CREATESOUNDEXINFO);
-    fmod_soundInfo.length = buffer.size();
+    fmod_soundInfo.length = static_cast<unsigned int>(buffer.size());
     fmod_soundInfo.suggestedsoundtype = FMOD_SOUND_TYPE_MIDI;
     fmod_soundInfo.maxpolyphony = 32; //May not be required due to default MIDI;
     
@@ -161,7 +163,7 @@ void AudioSystem::StopChannel( AudioChannelHandle channel )
 //---------------------------------------------------------------------------
 AudioChannelHandle AudioSystem::Play( SoundID soundID, float volumeLevel )
 {
-	unsigned int numSounds = m_registeredSounds.size();
+	std::size_t numSounds = m_registeredSounds.size();
 	if( soundID < 0 || soundID >= numSounds )
 		return nullptr;
 
@@ -170,7 +172,7 @@ AudioChannelHandle AudioSystem::Play( SoundID soundID, float volumeLevel )
 		return nullptr;
 
 	FMOD::Channel* channelAssignedToSound = nullptr;
-	m_fmodSystem->playSound( FMOD_CHANNEL_FREE, sound, false, &channelAssignedToSound );
+	m_fmodSystem->playSound(sound, nullptr, false, &channelAssignedToSound );
 	if( channelAssignedToSound )
 	{
 		channelAssignedToSound->setVolume(volumeLevel);

@@ -19,8 +19,8 @@ Message::~Message() {
     sender = nullptr;
 }
 
-unsigned int Message::read_bytes(void* out_buffer, const unsigned int count) {
-    unsigned int new_count = count;
+std::size_t Message::read_bytes(void* out_buffer, const std::size_t count) {
+    std::size_t new_count = count;
     if(payload_read_bytes + new_count > payload_write_bytes) {
         ERROR_AND_DIE("Message::read_bytes: Payload size too big.");
     }
@@ -29,11 +29,11 @@ unsigned int Message::read_bytes(void* out_buffer, const unsigned int count) {
     return new_count;
 }
 
-unsigned int Message::write_bytes(const void* buffer, const unsigned int size) const {
+std::size_t Message::write_bytes(const void* buffer, const std::size_t size) const {
     //if(this->HostEndianOrder() == FileUtils::BIG_ENDIAN) {
     //    CopyReversed(reinterpret_cast<unsigned char*>(buffer), buffer, size);
     //}
-    unsigned int new_size = size;
+    std::size_t new_size = size;
     if(payload_write_bytes + new_size > payload.size()) {
         ERROR_AND_DIE("Message::write_bytes: Payload size too big.");
     }

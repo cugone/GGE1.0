@@ -92,10 +92,12 @@ bool Texture2D::IsValid() const noexcept {
     return _dx_resource != nullptr;
 }
 
-void Texture2D::SetDebugName(char const *name) noexcept {
+void Texture2D::SetDebugName( [[maybe_unused]] char const *name) noexcept {
+#if _DEBUG
     if((_dx_resource != nullptr) && (name != nullptr)) {
         _dx_resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen(name) + 1, name);
     }
+#endif
 }
 
 ID3D11Texture2D* Texture2D::GetDxResource() const noexcept {

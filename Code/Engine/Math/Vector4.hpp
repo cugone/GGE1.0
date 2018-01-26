@@ -8,6 +8,7 @@
 //#include "Engine/Math/MathUtils.hpp"
 
 class Vector3;
+class Vector2;
 
 class Vector4 {
 public:
@@ -29,6 +30,7 @@ public:
     Vector4& operator=(const Vector4& rhs) = default;
     Vector4& operator=(Vector4&& rrhs) = default;
     Vector4(const Vector3& vec3, float initialW);
+    Vector4(const Vector2& vec2, float initialZ, float initialW);
     Vector4(float initialX, float initialY, float initialZ, float initialW);
     explicit Vector4(const IntVector4& intVector);
     void GetXYZ(float& out_x, float& out_y, float& out_z) const;

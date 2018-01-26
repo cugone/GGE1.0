@@ -114,7 +114,6 @@ private:
     float _defaultSecondsPerBlink;
     bool _requestQuit;
     bool _showCaret;
-    bool _showProfiler;
     bool _shiftModifier;
     Rgba _text_color;
     bool _isOpen;

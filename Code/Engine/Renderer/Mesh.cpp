@@ -88,20 +88,20 @@ const Matrix4& Mesh::GetLocalTransform() const {
 }
 
 bool Mesh::write(FileUtils::BinaryStream& stream) const {
-    unsigned int p_s = _positions.size();
-    for(unsigned int i = 0; i < p_s; ++i) {
+    std::size_t p_s = _positions.size();
+    for(std::size_t i = 0; i < p_s; ++i) {
         if(!stream.write(_positions[i])) {
             return false;
         }
     }
-    unsigned int uv_s = _uvs.size();
-    for(unsigned int i = 0; i < uv_s; ++i) {
+    std::size_t uv_s = _uvs.size();
+    for(std::size_t i = 0; i < uv_s; ++i) {
         if(!stream.write(_uvs[i])) {
             return false;
         }
     }
-    unsigned int n_s = _normals.size();
-    for(unsigned int i = 0; i < n_s; ++i) {
+    std::size_t n_s = _normals.size();
+    for(std::size_t i = 0; i < n_s; ++i) {
         if(!stream.write(_normals[i])) {
             return false;
         }
@@ -109,32 +109,32 @@ bool Mesh::write(FileUtils::BinaryStream& stream) const {
     return true;
 }
 bool Mesh::read(FileUtils::BinaryStream& stream) {
-    unsigned int p_s = 0;
+    std::size_t p_s = 0;
     if(!stream.read(p_s)) {
         return false;
     }
     _positions.resize(p_s);
-    for(unsigned int i = 0; i < p_s; ++i) {
+    for(std::size_t i = 0; i < p_s; ++i) {
         if(!stream.read(_positions[i])) {
             return false;
         }
     }
-    unsigned int uv_s = 0;
+    std::size_t uv_s = 0;
     if(!stream.read(uv_s)) {
         return false;
     }
     _uvs.resize(uv_s);
-    for(unsigned int i = 0; i < uv_s; ++i) {
+    for(std::size_t i = 0; i < uv_s; ++i) {
         if(!stream.read(_uvs[i])) {
             return false;
         }
     }
-    unsigned int n_s = 0;
+    std::size_t n_s = 0;
     if(!stream.read(n_s)) {
         return false;
     }
     _normals.resize(n_s);
-    for(unsigned int i = 0; i < n_s; ++i) {
+    for(std::size_t i = 0; i < n_s; ++i) {
         if(!stream.read(_normals[i])) {
             return false;
         }
@@ -339,8 +339,8 @@ bool Mesh::GetIndicies(std::istream& iss) {
     std::string cur_value;
     unsigned int value = 0;
     Vertex3D vert;
-    unsigned int vertex_count = 0;
-    unsigned int start_index = _verts.size();
+    std::size_t vertex_count = 0;
+    unsigned int start_index = static_cast<unsigned int>(_verts.size());
     while (iss >> value) {
         //Required
         vert.position = _positions[value - 1];

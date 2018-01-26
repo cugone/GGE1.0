@@ -9,13 +9,17 @@ class Texture;
 
 namespace UI {
 
+class Canvas;
+
 class Sprite : public UI::Element {
 public:
     Sprite() = default;
-    Sprite(const SpriteSheet& sprite);
+    Sprite(UI::Canvas* parentCanvas);
+    Sprite(SpriteSheet* sprite);
     Sprite(const SpriteAnimation& sprite);
 
-    void SetImage(const SpriteSheet& sprite);
+    SpriteAnimation* GetImage() const;
+    void SetImage(SpriteSheet* sprite);
     void SetImage(const SpriteAnimation& sprite);
     const Texture2D* GetTexture2D() const;
     const Texture* GetTexture() const;
@@ -27,7 +31,7 @@ public:
     virtual void DebugRender(SimpleRenderer* renderer) const override;
     virtual void Render(SimpleRenderer* renderer) const override;
 
-    virtual void Update(float deltaSeconds, const IntVector2& mouse_position) override;
+    virtual void Update(float deltaSeconds, const Vector2& mouse_position) override;
 
 protected:
 private:

@@ -28,10 +28,10 @@ public:
     // therefore if we have 3 frames in this motion, the total duration would be (3 - 1) * 0.1,
     // or 0.2 seconds long.  
     float get_duration() const;
-    unsigned int get_frame_count() const;
+    std::size_t get_frame_count() const;
 
-    const MeshPose& get_pose(unsigned int frame_idx) const;
-    MeshPose& get_pose(unsigned int frame_idx);
+    const MeshPose& get_pose(std::size_t frame_idx) const;
+    MeshPose& get_pose(std::size_t frame_idx);
 
     void evaluate(MeshPose& out, float time) const;
 

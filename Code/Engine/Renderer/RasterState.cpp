@@ -50,7 +50,7 @@ bool RasterState::LoadFromXML(RHIDevice* device, const XMLElement& element) {
     auto xml_raster = element.FirstChildElement("raster");
     if(xml_raster != nullptr) {
 
-        DataUtils::ValidateXmlElement(*xml_raster, "fill,cull", "", "antialiasing,depthbias,depthclip,scissor,msaa");
+        DataUtils::ValidateXmlElement(*xml_raster, "raster", "fill,cull", "", "antialiasing,depthbias,depthclip,scissor,msaa");
         auto xml_fill = xml_raster->FirstChildElement("fill");
         std::string fill_str = "solid";
         fill_str = DataUtils::ParseXmlElementText(*xml_fill, fill_str);
@@ -64,7 +64,7 @@ bool RasterState::LoadFromXML(RHIDevice* device, const XMLElement& element) {
         desc.antialiasedLineEnable = false;
         auto xml_antialiasing = xml_raster->FirstChildElement("antialiasing");
         if(xml_antialiasing != nullptr) {
-            DataUtils::ValidateXmlElement(*xml_antialiasing, "", "");
+            DataUtils::ValidateXmlElement(*xml_antialiasing, "antialiasing", "", "");
             desc.antialiasedLineEnable = DataUtils::ParseXmlElementText(*xml_antialiasing, desc.antialiasedLineEnable);
         }
 
@@ -73,7 +73,7 @@ bool RasterState::LoadFromXML(RHIDevice* device, const XMLElement& element) {
         desc.slopeScaledDepthBias = 0.0f;
         auto xml_depthbias = xml_raster->FirstChildElement("depthbias");
         if(xml_depthbias != nullptr) {
-            DataUtils::ValidateXmlElement(*xml_depthbias, "", "value,clamp,slopescaled");
+            DataUtils::ValidateXmlElement(*xml_depthbias, "depthbias", "", "value,clamp,slopescaled");
             desc.depthBias = DataUtils::ParseXmlAttribute(*xml_depthbias, "value", desc.depthBias);
             desc.depthBiasClamp = DataUtils::ParseXmlAttribute(*xml_depthbias, "clamp", desc.depthBiasClamp);
             desc.slopeScaledDepthBias = DataUtils::ParseXmlAttribute(*xml_depthbias, "slopescaled", desc.slopeScaledDepthBias);
@@ -82,21 +82,21 @@ bool RasterState::LoadFromXML(RHIDevice* device, const XMLElement& element) {
         desc.depthClipEnable = true;
         auto xml_depthclip = xml_raster->FirstChildElement("depthclip");
         if(xml_depthclip != nullptr) {
-            DataUtils::ValidateXmlElement(*xml_depthclip, "", "");
+            DataUtils::ValidateXmlElement(*xml_depthclip, "depthclip", "", "");
             desc.depthClipEnable = DataUtils::ParseXmlElementText(*xml_depthclip, desc.depthClipEnable);
         }
 
         desc.scissorEnable = false;
         auto xml_scissor = xml_raster->FirstChildElement("scissor");
         if(xml_scissor != nullptr) {
-            DataUtils::ValidateXmlElement(*xml_scissor, "", "");
+            DataUtils::ValidateXmlElement(*xml_scissor, "scissor", "", "");
             desc.scissorEnable = DataUtils::ParseXmlElementText(*xml_scissor, desc.scissorEnable);
         }
 
         desc.multisampleEnable = false;
         auto xml_msaa = xml_raster->FirstChildElement("scissor");
         if(xml_msaa != nullptr) {
-            DataUtils::ValidateXmlElement(*xml_msaa, "", "");
+            DataUtils::ValidateXmlElement(*xml_msaa, "scissor", "", "");
             desc.multisampleEnable = DataUtils::ParseXmlElementText(*xml_msaa, desc.multisampleEnable);
         }
     }

@@ -10,6 +10,12 @@ Panel::Panel()
     /* DO NOTHING */
 }
 
+Panel::Panel(UI::Canvas* parentCanvas)
+: UI::Element(parentCanvas)
+{
+    /* DO NOTHING */
+}
+
 void Panel::DebugRender(SimpleRenderer* renderer) const {
     UI::Element::DebugRender(renderer);
     if(_fillColor.a > 0 || _edgeColor.a > 0) {
@@ -28,8 +34,9 @@ void Panel::Render(SimpleRenderer* renderer) const {
     RenderChildren(renderer);
 }
 
-void Panel::Update(float deltaSeconds, const IntVector2& mouse_position) {
+void Panel::Update(float deltaSeconds, const Vector2& mouse_position) {
     if(_enabled) {
+        Element::Update(deltaSeconds, mouse_position);
         UpdateChildren(deltaSeconds, mouse_position);
     }
 }

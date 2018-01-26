@@ -4,12 +4,20 @@
 
 #include "Engine/Renderer/SimpleRenderer.hpp"
 
+#include "Engine/UI/Canvas.hpp"
+
 namespace UI {
 
 Text::Text(KerningFont* f)
     : UI::Element()
 {
     _font = f;
+}
+
+Text::Text(UI::Canvas* parentCanvas)
+    : UI::Element(parentCanvas)
+{
+    /* DO NOTHING */
 }
 
 void Text::DebugRender(SimpleRenderer* renderer) const {
@@ -23,15 +31,17 @@ void Text::Render(SimpleRenderer* renderer) const {
     renderer->DrawTextLine(_font, _text, _bounds.GetBottomLeft(), _color, _scale);
 }
 
-void Text::Update(float deltaSeconds, const IntVector2& mouse_position) {
+void Text::Update(float deltaSeconds, const Vector2& mouse_position) {
     if(_enabled) {
+        Element::Update(deltaSeconds, mouse_position);
         UpdateChildren(deltaSeconds, mouse_position);
     }
 }
 
 void Text::SetScale(float scale) {
+    _dirtyBounds = true;
     _scale = scale;
-    SetSize({0.0f, 0.0f}, { _font->CalculateTextWidth(_text, _scale), _font->CalculateTextHeight(_text, _scale) });
+    CalcBoundsFromFont(_font);
 }
 
 float Text::GetScale() const {
@@ -39,21 +49,9 @@ float Text::GetScale() const {
 }
 
 void Text::SetText(const std::string& text) {
+    _dirtyBounds = true;
     _text = text;
-    float width = _font->CalculateTextWidth(_text, _scale);
-    float height = _font->CalculateTextHeight(_text, _scale);
-    auto old_size = GetSize();
-    float old_width = old_size.x;
-    float old_height = old_size.y;
-    if(old_width < width) {
-        SetSize(_size.ratio, {width, old_height});
-    }
-    old_size = GetSize();
-    old_width = old_size.x;
-    old_height = old_size.y;
-    if(old_height < height) {
-        SetSize(_size.ratio, {old_width, height});
-    }
+    CalcBoundsFromFont(_font);
 }
 
 const std::string& Text::GetText() const {
@@ -66,6 +64,30 @@ void Text::SetTextColor(const Rgba& textColor) {
 
 const Rgba& Text::GetTextColor() const {
     return _color;
+}
+
+void Text::CalcBoundsFromFont(KerningFont* f) {
+    if(f == nullptr) {
+        return;
+    }
+    float width = f->CalculateTextWidth(_text, _scale);
+    float height = f->CalculateTextHeight(_text, _scale);
+    auto old_size = GetSize();
+    float old_width = old_size.x;
+    float old_height = old_size.y;
+    if(old_width < width) {
+        auto ratio = GetSizeRatio();
+        SetSize({ {0.0f, 0.0f},{ width, old_height } });
+    }
+    if(old_height < height) {
+        auto ratio = GetSizeRatio();
+        SetSize({ { 0.0f, 0.0f },{ old_width, height } });
+    }
+}
+
+void Text::SetFont(KerningFont* f) {
+    UI::Element::SetFont(f);
+    CalcBoundsFromFont(_font);
 }
 
 } //End UI

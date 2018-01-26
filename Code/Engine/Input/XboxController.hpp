@@ -25,8 +25,8 @@ enum GamepadCode {
 class XboxController {
 
 public:
-	XboxController();
-	~XboxController();
+	XboxController() = default;
+	~XboxController() = default;
 
     void Update(int controllerNumber);
 
@@ -46,6 +46,19 @@ public:
     const Vector2& GetLeftThumbPosition() const;
     const Vector2& GetRightThumbPosition() const;
 
+	void SetRightMotorSpeedToMax();
+	void SetLeftMotorSpeedToMax();
+
+	void SetRightMotorSpeedAsPercentage(float speed);
+	void SetLeftMotorSpeedAsPercentage(float speed);
+
+	void SetRightMotorSpeed(unsigned short speed);
+	void SetLeftMotorSpeed(unsigned short speed);
+
+	void StopLeftMotor();
+	void StopRightMotor();
+	void StopMotors();
+
     float GetLeftTriggerPosition() const;
     float GetRightTriggerPosition() const;
 
@@ -55,13 +68,17 @@ public:
 
 protected:
     void UpdateExternalButtonStateHelper();
+	void SetMotorSpeed(int controllerNumber, bool isLeftMotor, unsigned short value);
 private:
-    KeyState m_xboxControllerButtons[GAMEPADCODE_MAX];
-    Vector2 m_leftThumbDistance;
-    Vector2 m_rightThumbDistance;
-    Vector2 m_triggerDistance;
-    unsigned short m_previousRawButtonState;
-    unsigned short m_currentRawButtonState;
-    bool m_isConnected;
-    bool m_isConnectedChanged;
+	KeyState m_xboxControllerButtons[GAMEPADCODE_MAX] = { false };
+	Vector2 m_leftThumbDistance = {};
+	Vector2 m_rightThumbDistance = {};
+	Vector2 m_triggerDistance = {0.0f, 0.0f};
+	unsigned short m_previousRawButtonState = 0;
+	unsigned short m_currentRawButtonState = 0;
+	unsigned short m_currentLeftMotorState = 0;
+	unsigned short m_currentRightMotorState = 0;
+    bool m_motorStateChanged = false;
+	bool m_isConnected = false;
+	bool m_isConnectedChanged = false;
 };

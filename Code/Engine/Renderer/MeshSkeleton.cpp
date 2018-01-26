@@ -41,12 +41,12 @@ void MeshSkeleton::add_joint(const std::string& name, const std::string& parent_
     this->_joint_transforms.push_back(new_joint);
 }
 
-unsigned int MeshSkeleton::get_joint_count() const {
+std::size_t MeshSkeleton::get_joint_count() const {
     return _joint_transforms.size();
 }
 
-unsigned int MeshSkeleton::get_joint_index(const std::string& name) const {
-    unsigned int index = 0;
+std::size_t MeshSkeleton::get_joint_index(const std::string& name) const {
+    std::size_t index = 0;
     auto found_iter = std::find_if(std::begin(_joint_transforms), std::end(_joint_transforms), [&](const Joint* j) { return j->name == name; });
     index = std::distance(_joint_transforms.begin(), found_iter);
     if(found_iter == _joint_transforms.end()) {
@@ -55,11 +55,11 @@ unsigned int MeshSkeleton::get_joint_index(const std::string& name) const {
     return index;
 }
 
-unsigned int MeshSkeleton::get_joint_index(const std::string& name) {
+std::size_t MeshSkeleton::get_joint_index(const std::string& name) {
     return static_cast<const MeshSkeleton&>(*this).get_joint_index(name);
 }
 
-Matrix4 MeshSkeleton::get_joint_transform(unsigned int joint_idx) const {
+Matrix4 MeshSkeleton::get_joint_transform(std::size_t joint_idx) const {
     if(joint_idx >= _joint_transforms.size()) {
         return Matrix4::GetIdentity();
     }
@@ -67,7 +67,7 @@ Matrix4 MeshSkeleton::get_joint_transform(unsigned int joint_idx) const {
     return _joint_transforms[idx]->transform;
 }
 
-Matrix4 MeshSkeleton::get_joint_transform(unsigned int joint_idx) {
+Matrix4 MeshSkeleton::get_joint_transform(std::size_t joint_idx) {
     return static_cast<const MeshSkeleton&>(*this).get_joint_transform(joint_idx);
 }
 
@@ -83,7 +83,7 @@ Matrix4 MeshSkeleton::get_joint_transform(const std::string& name) {
     return static_cast<const MeshSkeleton&>(*this).get_joint_transform(name);
 }
 
-void MeshSkeleton::set_joint_transform(unsigned int joint_idx, const Matrix4& transform) {
+void MeshSkeleton::set_joint_transform(std::size_t joint_idx, const Matrix4& transform) {
     if(joint_idx >= _joint_transforms.size()) {
         return;
     }
@@ -91,14 +91,14 @@ void MeshSkeleton::set_joint_transform(unsigned int joint_idx, const Matrix4& tr
 }
 
 void MeshSkeleton::set_joint_transform(const std::string& name, const Matrix4& transform) {
-    unsigned int i = get_joint_index(name);
+    std::size_t i = get_joint_index(name);
     if(i >= _joint_transforms.size()) {
         return;
     }
     _joint_transforms[i]->transform = transform;
 }
 
-MeshSkeleton::Joint* MeshSkeleton::get_joint_parent(unsigned int joint_idx) const {
+MeshSkeleton::Joint* MeshSkeleton::get_joint_parent(std::size_t joint_idx) const {
     if(joint_idx >= _joint_transforms.size()) {
         return nullptr;
     }
@@ -113,7 +113,7 @@ MeshSkeleton::Joint* MeshSkeleton::get_joint_parent(const std::string& name) con
     return _joint_transforms[i]->parent;
 }
 
-std::string MeshSkeleton::get_joint_name(unsigned int joint_idx) const {
+std::string MeshSkeleton::get_joint_name(std::size_t joint_idx) const {
     if(joint_idx >= _joint_transforms.size()) {
         return "";
     }
@@ -130,7 +130,7 @@ bool MeshSkeleton::is_loaded() const {
 void MeshSkeleton::Render(SimpleRenderer& renderer) const {
     renderer.SetModelMatrix(Matrix4::GetIdentity());
     renderer.SetMaterial(renderer.GetMaterial("__unlit"));
-    for(unsigned int i = 0; i < get_joint_count(); ++i) {
+    for(std::size_t i = 0; i < get_joint_count(); ++i) {
         auto p = get_joint_parent(i);
         if(p) {
             auto p1 = _localTransform * get_joint_transform(p->name);

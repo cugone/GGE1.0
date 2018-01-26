@@ -1,9 +1,18 @@
 #include "Engine/UI/Menu.hpp"
 
+#include "Engine/UI/Canvas.hpp"
+
 namespace UI {
 
-void Menu::Update(float deltaSeconds, const IntVector2& mouse_position) {
+Menu::Menu(UI::Canvas* parentCanvas)
+    : Element(parentCanvas)
+{
+    /* DO NOTHING */
+}
+
+void Menu::Update(float deltaSeconds, const Vector2& mouse_position) {
     if(_enabled) {
+        Element::Update(deltaSeconds, mouse_position);
         UpdateChildren(deltaSeconds, mouse_position);
     }
 }

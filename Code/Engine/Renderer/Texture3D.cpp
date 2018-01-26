@@ -92,10 +92,12 @@ bool Texture3D::IsValid() const noexcept {
     return _dx_resource != nullptr;
 }
 
-void Texture3D::SetDebugName(char const *name) noexcept {
+void Texture3D::SetDebugName( [[maybe_unused]] char const *name) noexcept {
+#if _DEBUG
     if((_dx_resource != nullptr) && (name != nullptr)) {
         _dx_resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen(name) + 1, name);
     }
+#endif
 }
 
 ID3D11Texture3D* Texture3D::GetDxResource() const noexcept {

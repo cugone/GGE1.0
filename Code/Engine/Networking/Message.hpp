@@ -39,8 +39,8 @@ public:
 
     virtual ~Message() override;
 
-    virtual unsigned int read_bytes(void* out_buffer, const unsigned int count) override;
-    virtual unsigned int write_bytes(const void* buffer, const unsigned int size) const override;
+    virtual std::size_t read_bytes(void* out_buffer, const std::size_t count) override;
+    virtual std::size_t write_bytes(const void* buffer, const std::size_t size) const override;
 
     void writeString(const char* str);
 
@@ -53,8 +53,8 @@ public:
 
     Net::Connection* sender;
     std::array<unsigned char, 1024> payload;
-    mutable unsigned int payload_read_bytes;
-    mutable unsigned int payload_write_bytes;
+    mutable std::size_t payload_read_bytes;
+    mutable std::size_t payload_write_bytes;
 private:
     MessageID message_type_index;
 };

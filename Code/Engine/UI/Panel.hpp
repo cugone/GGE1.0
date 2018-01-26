@@ -6,9 +6,12 @@
 
 namespace UI {
 
+class Canvas;
+
 class Panel : public UI::Element {
 public:
     Panel();
+    Panel(UI::Canvas* parentCanvas);
     virtual ~Panel() = default;
 
     virtual void DebugRender(SimpleRenderer* renderer) const override;
@@ -18,7 +21,7 @@ public:
     void SetEdgeColor(const Rgba& color);
     void SetFillColor(const Rgba& color);
 
-    virtual void Update(float deltaSeconds, const IntVector2& mouse_position) override;
+    virtual void Update(float deltaSeconds, const Vector2& mouse_position) override;
 
 protected:
 private:

@@ -30,7 +30,7 @@ void TCPConnection::Send(Net::Message* msg) {
 
 void TCPConnection::Receive(Net::Message** msg) {
     if(rbtm < 2) {
-        unsigned int recv_cnt = socket->Receive(recv_buffer.data() + rbtm, 2 - rbtm);
+        std::size_t recv_cnt = socket->Receive(recv_buffer.data() + rbtm, 2 - rbtm);
         if(recv_cnt == 0) {
             return;
         }
@@ -38,7 +38,7 @@ void TCPConnection::Receive(Net::Message** msg) {
     } else {
         uint16_t bytes_to_read = *(uint16_t*)recv_buffer.data();
         if(rbtm < 2u + bytes_to_read) {
-            unsigned int recv_cnt = socket->Receive(recv_buffer.data() + rbtm, (2u + bytes_to_read) - rbtm);
+            std::size_t recv_cnt = socket->Receive(recv_buffer.data() + rbtm, (2u + bytes_to_read) - rbtm);
             if(recv_cnt == 0) {
                 return;
             }

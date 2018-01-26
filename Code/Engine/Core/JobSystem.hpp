@@ -32,6 +32,7 @@ typedef std::function<void(void*)> job_work_cb;
 
 class Job {
 public:
+	~Job();
     JobType type;
     JobState state = JOBSTATE_NONE;
     job_work_cb work_cb;
@@ -81,8 +82,8 @@ public:
 
     static void WaitAndRelease(Job* job);
 
-    unsigned int GetLiveJobCount();
-    unsigned int GetActiveJobCount();
+    std::size_t GetLiveJobCount();
+    std::size_t GetActiveJobCount();
 
     virtual void BeginFrame() override;
     virtual bool ProcessSystemMessage(const SystemMessage& msg) override;

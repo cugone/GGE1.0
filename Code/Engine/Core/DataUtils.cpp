@@ -14,24 +14,24 @@
 namespace DataUtils {
 
 void ValidateXmlElement(const XMLElement& element,
-                        const char* requiredChildElements,
-                        const char* requiredAttributes,
-                        const char* optionalChildElements /*= nullptr*/,
-                        const char* optionalAttributes /*= nullptr*/) {
-
-    ValidateXmlElement(element,
-                       std::string(requiredChildElements ? requiredChildElements : ""),
-                       std::string(requiredAttributes ? requiredAttributes : ""),
-                       std::string(optionalChildElements ? optionalChildElements : ""),
-                       std::string(optionalAttributes ? optionalAttributes : ""));
-
-}
-
-void ValidateXmlElement(const XMLElement& element,
-                        const std::string& requiredChildElements,
-                        const std::string& requiredAttributes,
-                        const std::string& optionalChildElements /*= std::string("")*/,
-                        const std::string& optionalAttributes /*= std::string("")*/) {
+    const std::string& name,
+    const std::string& requiredChildElements,
+    const std::string& requiredAttributes,
+    const std::string& optionalChildElements /*= std::string("")*/,
+    const std::string& optionalAttributes /*= std::string("")*/)
+{
+    if (name.empty()) {
+        std::ostringstream err_ss;
+        err_ss << "Element validation failed. Element name is required.";
+        ERROR_AND_DIE(err_ss.str().c_str());
+    }
+    auto xmlNameAsCStr = element.Name();
+    std::string xml_name = xmlNameAsCStr ? xmlNameAsCStr : "";
+    if (xml_name != name) {
+        std::ostringstream err_ss;
+        err_ss << "Element validation failed. Element name \"" << xml_name << "\" does not match valid name \"" << name << "\"\n";
+        ERROR_AND_DIE(err_ss.str().c_str());
+    }
 
     std::vector<std::string> requiredAttributeNames = Split(requiredAttributes);
     std::sort(requiredAttributeNames.begin(), requiredAttributeNames.end());
@@ -54,36 +54,28 @@ void ValidateXmlElement(const XMLElement& element,
     //Difference between actual attribute names and required list is list of actual optional attributes.
     std::vector<std::string> actualOptionalAttributeNames;
     std::set_difference(actualAttributeNames.begin(), actualAttributeNames.end(),
-                        requiredAttributeNames.begin(), requiredAttributeNames.end(),
-                        std::back_inserter(actualOptionalAttributeNames)
+        requiredAttributeNames.begin(), requiredAttributeNames.end(),
+        std::back_inserter(actualOptionalAttributeNames)
     );
     std::sort(actualOptionalAttributeNames.begin(), actualOptionalAttributeNames.end());
 
     //Difference between actual child names and required list is list of actual optional children.
     std::vector<std::string> actualOptionalChildElementNames;
     std::set_difference(actualChildElementNames.begin(), actualChildElementNames.end(),
-                        requiredChildElementNames.begin(), requiredChildElementNames.end(),
-                        std::back_inserter(actualOptionalChildElementNames)
+        requiredChildElementNames.begin(), requiredChildElementNames.end(),
+        std::back_inserter(actualOptionalChildElementNames)
     );
     std::sort(actualOptionalChildElementNames.begin(), actualOptionalChildElementNames.end());
-
-    //if(!actualChildElementNames.empty() && requiredChildElementNames.empty()) {
-    //    ERROR_AND_DIE("Child Element validation failed. Found children where None expected.");
-    //}
-
-    //if(!actualAttributeNames.empty() && requiredAttributeNames.empty()) {
-    //    ERROR_AND_DIE("Element Attribute validation failed. Found attributes where None expected.");
-    //}
 
     //Find missing attributes
     std::vector<std::string> missingRequiredAttributes;
     std::set_difference(requiredAttributeNames.begin(), requiredAttributeNames.end(),
-                        actualAttributeNames.begin(), actualAttributeNames.end(),
-                        std::back_inserter(missingRequiredAttributes));
+        actualAttributeNames.begin(), actualAttributeNames.end(),
+        std::back_inserter(missingRequiredAttributes));
 
-    if(!missingRequiredAttributes.empty()) {
+    if (!missingRequiredAttributes.empty()) {
         std::ostringstream err_ss;
-        for(auto& c : missingRequiredAttributes) {
+        for (auto& c : missingRequiredAttributes) {
             err_ss << "Attribute validation failed. Missing required attribute \"" << c << "\"\n";
         }
         ERROR_AND_DIE(err_ss.str().c_str());
@@ -92,26 +84,27 @@ void ValidateXmlElement(const XMLElement& element,
     //Find missing children
     std::vector<std::string> missingRequiredChildren;
     std::set_difference(requiredChildElementNames.begin(), requiredChildElementNames.end(),
-                        actualChildElementNames.begin(), actualChildElementNames.end(),
-                        std::back_inserter(missingRequiredChildren));
+        actualChildElementNames.begin(), actualChildElementNames.end(),
+        std::back_inserter(missingRequiredChildren));
 
-    if(!missingRequiredChildren.empty()) {
+    if (!missingRequiredChildren.empty()) {
         std::ostringstream err_ss;
-        for(auto& c : missingRequiredChildren) {
+        for (auto& c : missingRequiredChildren) {
             err_ss << "Child Element validation failed. Missing required child \"" << c << "\"\n";
         }
         ERROR_AND_DIE(err_ss.str().c_str());
     }
 
+#ifdef _DEBUG
     //Find extra attributes
     std::vector<std::string> extraOptionalAttributes;
     std::set_difference(actualOptionalAttributeNames.begin(), actualOptionalAttributeNames.end(),
-                        optionalAttributeNames.begin(), optionalAttributeNames.end(),
-                        std::back_inserter(extraOptionalAttributes));
+        optionalAttributeNames.begin(), optionalAttributeNames.end(),
+        std::back_inserter(extraOptionalAttributes));
 
-    if(!extraOptionalAttributes.empty()) {
+    if (!extraOptionalAttributes.empty()) {
         std::ostringstream err_ss;
-        for(auto& c : extraOptionalAttributes) {
+        for (auto& c : extraOptionalAttributes) {
             err_ss << "Optional Attribute validation failed. Unknown attribute \"" << c << "\" found.\n";
         }
         ERROR_AND_DIE(err_ss.str().c_str());
@@ -120,17 +113,17 @@ void ValidateXmlElement(const XMLElement& element,
     //Find extra children
     std::vector<std::string> extraOptionalChildren;
     std::set_difference(actualOptionalChildElementNames.begin(), actualOptionalChildElementNames.end(),
-                        optionalChildElementNames.begin(), optionalChildElementNames.end(),
-                        std::back_inserter(extraOptionalChildren));
+        optionalChildElementNames.begin(), optionalChildElementNames.end(),
+        std::back_inserter(extraOptionalChildren));
 
-    if(!extraOptionalChildren.empty()) {
+    if (!extraOptionalChildren.empty()) {
         std::ostringstream err_ss;
-        for(auto& c : extraOptionalChildren) {
+        for (auto& c : extraOptionalChildren) {
             err_ss << "Optional Child Element validation failed. Unknown child \"" << c << "\" found.\n";
         }
         ERROR_AND_DIE(err_ss.str().c_str());
     }
-
+#endif
 }
 
 unsigned int GetAttributeCount(const XMLElement &element) {

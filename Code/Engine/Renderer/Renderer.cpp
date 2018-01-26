@@ -363,7 +363,7 @@ void Renderer::DrawVertexVbo(int vboId, int numVertex, const PrimitiveDrawMode& 
     BindBuffers(Renderer::BufferBindingTarget::ARRAY_BUFFER, 0);
 
 }
-void Renderer::DrawVertexes(const Vertex3D* vertexArray, int numVertex, const PrimitiveDrawMode& primitiveDrawMode) {
+void Renderer::DrawVertexes(const Vertex3D* vertexArray, std::size_t numVertex, const Renderer::PrimitiveDrawMode& primitiveDrawMode) {
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
@@ -374,7 +374,7 @@ void Renderer::DrawVertexes(const Vertex3D* vertexArray, int numVertex, const Pr
     glColorPointer(4, GL_UNSIGNED_BYTE, stride, &vertexArray[0].color);
     glTexCoordPointer(2, GL_FLOAT, stride, &vertexArray[0].texCoords);
     
-    glDrawArrays(static_cast<int>(primitiveDrawMode), 0, numVertex);
+    glDrawArrays(static_cast<int>(primitiveDrawMode), 0, static_cast<int>(numVertex));
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
@@ -488,6 +488,16 @@ Matrix4 Renderer::GetCurrentModelViewMatrix() {
                     Vector4(m[8],  m[9],  m[10], m[11]),
                     Vector4(m[12], m[13], m[14], m[15]));
 }
+
+Matrix4 Renderer::GetCurrentProjectionMatrix() {
+    float m[16];
+    glGetFloatv(GL_PROJECTION_MATRIX, m);
+    return  Matrix4(Vector4(m[0], m[1], m[2], m[3]),
+                    Vector4(m[4], m[5], m[6], m[7]),
+                    Vector4(m[8], m[9], m[10], m[11]),
+                    Vector4(m[12], m[13], m[14], m[15]));
+}
+
 void Renderer::LoadIdentity() {
     glLoadIdentity();
 }
@@ -581,7 +591,7 @@ void Renderer::DrawCircle(const Vertex2D& centerPositionEdgeColor, float numSide
     DrawRegularPolygonOutline(centerPositionEdgeColor, numSides, radius);
 }
 
-void Renderer::DrawPolygonOutline(const Vertex3D* vertecies, int vertexCount) {
+void Renderer::DrawPolygonOutline(const Vertex3D* vertecies, std::size_t vertexCount) {
     BindTexture(nullptr);
     DrawVertexes(vertecies, vertexCount, PrimitiveDrawMode::LINE_LOOP);
 }

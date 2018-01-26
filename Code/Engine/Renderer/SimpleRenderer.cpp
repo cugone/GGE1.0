@@ -1909,7 +1909,7 @@ void SimpleRenderer::CalculateUvSphereBuffers(const Vector3& position, const Rgb
     }
 
     //South pole Indicies
-    unsigned int southPoleIndex = vbo.size() - 1;
+    unsigned int southPoleIndex = static_cast<unsigned int>(vbo.size()) - 1;
     baseIndex = southPoleIndex - ringVertexCount - 1;
     for (unsigned int i = 0; i < slices; i++) {
         ibo.push_back(baseIndex);
@@ -2411,6 +2411,10 @@ void SimpleRenderer::SetPerspectiveProjection(const Vector2& vfovDegrees_aspect,
     SetProjectionMatrix(proj);
 }
 
+void SimpleRenderer::SetPerspectiveProjectionFromCamera(const Camera3D& camera) {
+    SetPerspectiveProjection({ camera.m_fovVerticalDegrees, camera.m_aspectRatio }, { camera.m_nearDistance, camera.m_farDistance });
+}
+
 void SimpleRenderer::SetViewMatrix(const Matrix4& viewMatrix) {
     _matrix_data.view = viewMatrix;
     _matrix_cb->Update(_rhi_context, &_matrix_data);
@@ -2527,6 +2531,10 @@ KerningFont* SimpleRenderer::CreateOrGetFont(const std::string& name) {
 
 BitmapFont* SimpleRenderer::CreateBitmapFont(const std::string& filepath, int glyphWidth, int glyphHeight) {
     return new BitmapFont(CreateSpriteSheet(filepath, glyphWidth, glyphHeight));
+}
+
+SpriteSheet* SimpleRenderer::CreateSpriteSheet(const XMLElement& elem) {
+    return new SpriteSheet(*this, elem);
 }
 
 SpriteSheet* SimpleRenderer::CreateSpriteSheet(const std::string& filepath, int tileWidth, int tileHeight) {
@@ -3247,7 +3255,7 @@ void SimpleRenderer::DrawTextLine(KerningFont* f, const std::string& text, const
         font_vbo.emplace_back(Vector3(quad_right, quad_top, 0.0), color, Vector2(char_uvr, char_uvt), -Vector3::Z_AXIS, Vector3::X_AXIS, Vector3::Vector3::Y_AXIS);
         font_vbo.emplace_back(Vector3(quad_right, quad_bottom, 0.0), color, Vector2(char_uvr, char_uvb), -Vector3::Z_AXIS, Vector3::X_AXIS, Vector3::Vector3::Y_AXIS);
 
-        std::size_t s = font_vbo.size();
+        unsigned int s = static_cast<unsigned int>(font_vbo.size());
         font_ibo.push_back(s - 4);
         font_ibo.push_back(s - 3);
         font_ibo.push_back(s - 2);
@@ -3651,7 +3659,7 @@ void SimpleRenderer::DrawTextLine(const PrimitiveType& topology, VertexBuffer* v
     _rhi_context->GetDxContext()->Draw(vertex_count, 0);
 }
 
-void SimpleRenderer::DrawIndexed(const PrimitiveType& topology, VertexBuffer* vbo, IndexBuffer* ibo, unsigned int const vertex_count) {
+void SimpleRenderer::DrawIndexed(const PrimitiveType& topology, VertexBuffer* vbo, IndexBuffer* ibo, const std::size_t vertex_count) {
 
     D3D11_PRIMITIVE_TOPOLOGY d3d_prim = PrimitiveTypeToD3dTopology(topology);
     _rhi_context->GetDxContext()->IASetPrimitiveTopology(d3d_prim);
@@ -3663,10 +3671,10 @@ void SimpleRenderer::DrawIndexed(const PrimitiveType& topology, VertexBuffer* vb
     ID3D11Buffer* dx_ibo_buffer = ibo->GetDxBuffer();
     _rhi_context->GetDxContext()->IASetIndexBuffer(dx_ibo_buffer, DXGI_FORMAT_R32_UINT, 0U);
 
-    _rhi_context->GetDxContext()->DrawIndexed(vertex_count, 0, 0);
+    _rhi_context->GetDxContext()->DrawIndexed(static_cast<unsigned int>(vertex_count), 0, 0);
 }
 
-void SimpleRenderer::Draw(const PrimitiveType& topology, VertexBuffer* vbo, unsigned int const vertex_count) {
+void SimpleRenderer::Draw(const PrimitiveType& topology, VertexBuffer* vbo, const std::size_t vertex_count) {
 
     D3D11_PRIMITIVE_TOPOLOGY d3d_prim = PrimitiveTypeToD3dTopology(topology);
     _rhi_context->GetDxContext()->IASetPrimitiveTopology(d3d_prim);
@@ -3675,7 +3683,7 @@ void SimpleRenderer::Draw(const PrimitiveType& topology, VertexBuffer* vbo, unsi
     ID3D11Buffer* dx_vbo_buffer = vbo->GetDxBuffer();
     _rhi_context->GetDxContext()->IASetVertexBuffers(0, 1, &dx_vbo_buffer, &stride, &offsets);
 
-    _rhi_context->GetDxContext()->Draw(vertex_count, 0);
+    _rhi_context->GetDxContext()->Draw(static_cast<unsigned int>(vertex_count), 0);
 }
 FontJustification operator|(const FontJustification& lhs, const FontJustification& rhs) {
     int lhs_value = static_cast<int>(lhs);

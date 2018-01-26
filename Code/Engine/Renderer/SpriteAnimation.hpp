@@ -1,10 +1,15 @@
 #pragma once
 
+#include <string>
+
 #include "Engine/Math/AABB2.hpp"
+
+#include "Engine/Core/DataUtils.hpp"
 
 class SpriteSheet;
 class Texture;
 class Texture2D;
+class SimpleRenderer;
 
 class SpriteAnimation {
 public:
@@ -17,13 +22,17 @@ public:
         NUM_SPRITE_ANIM_MODES,
     };
 
-    SpriteAnimation(const SpriteSheet& spriteSheet, float durationSeconds,
+    SpriteAnimation(SpriteSheet* spriteSheet, float durationSeconds,
                     SpriteAnimMode playbackMode, int startSpriteIndex, int endSpriteIndex);
+
+    SpriteAnimation(SimpleRenderer& renderer, const XMLElement& elem);
+    ~SpriteAnimation();
 
     void Update(float deltaSeconds);
     AABB2 GetCurrentTexCoords() const;	               // Based on the current elapsed time
     const Texture* const GetTexture() const;
     const Texture2D* const GetTexture2D() const;
+    void TogglePause();
     void Pause();					                   // Starts unpaused (playing) by default
     void Resume();				                       // Resume after pausing
     void Reset();					                   // Rewinds to time 0 and starts (re)playing
@@ -38,14 +47,16 @@ public:
     void SetFractionElapsed(float fractionElapsed);    // e.g. 0.33f for one-third in
 protected:
 private:
-    const SpriteSheet& m_spriteSheet;
-    float m_durationSeconds;
-    float m_elapsedSeconds;
-    float m_elapsedFrameDeltaSeconds;
-    float m_maxFrameDeltaSeconds;
-    SpriteAnimMode m_playbackMode;
-    int m_startIndex;
-    int m_endIndex;
-    int m_currentIndex;
-    bool m_isPlaying;
+    //Ping-pong is mutually exclusive
+    SpriteAnimMode GetAnimModeFromOptions(bool looping, bool backwards, bool ping_pong = false);
+
+    SpriteSheet* m_spriteSheet = nullptr;
+    float m_durationSeconds = 0.016f;
+    float m_elapsedSeconds = 0.0f;
+    float m_elapsedFrameDeltaSeconds = 0.0f;
+    float m_maxFrameDeltaSeconds = 0.0f;
+    SpriteAnimMode m_playbackMode = SpriteAnimMode::LOOPING;
+    int m_startIndex = 0;
+    int m_endIndex = 1;
+    bool m_isPlaying = true;
 };

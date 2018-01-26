@@ -74,15 +74,15 @@ std::pair<float, float> SplitFloatingPointValue(float value) {
 }
 
 std::pair<double, double> SplitFloatingPointValue(double value) {
-    double frac = 0.0f;
-    double int_part = 0.0f;
+    double frac = 0.0;
+    double int_part = 0.0;
     frac = std::modf(value, &int_part);
     return std::make_pair(int_part, frac);
 }
 
 std::pair<long double, long double> SplitFloatingPointValue(long double value) {
-    long double frac = 0.0f;
-    long double int_part = 0.0f;
+    long double frac = 0.0L;
+    long double int_part = 0.0L;
     frac = std::modf(value, &int_part);
     return std::make_pair(int_part, frac);
 }

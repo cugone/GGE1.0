@@ -45,8 +45,8 @@ class BinaryStream {
 public:
     eEndianness stream_order;
 
-    virtual unsigned int read_bytes(void* out_buffer, const unsigned int count) = 0;
-    virtual unsigned int write_bytes(const void* buffer, const unsigned int size) const = 0;
+    virtual std::size_t read_bytes(void* out_buffer, const std::size_t count) = 0;
+    virtual std::size_t write_bytes(const void* buffer, const std::size_t size) const = 0;
     virtual ~BinaryStream() = 0;
 
     // I assume most basic types want to be endian aware
@@ -70,12 +70,12 @@ public:
 
     bool should_flip() const;;
 
-    unsigned int write_bytes_endian_aware(const void* bytes, unsigned int count) const;
+    std::size_t write_bytes_endian_aware(const void* bytes, std::size_t count) const;
 
-    unsigned int read_bytes_endian_aware(void* bytes, unsigned int count);
+    std::size_t read_bytes_endian_aware(void* bytes, std::size_t count);
 
 protected:
-    void CopyReversed(unsigned char* copy, const void* bytes, unsigned int count) const;
+    void CopyReversed(unsigned char* copy, const void* bytes, std::size_t count) const;
 private:
 
 };
@@ -178,10 +178,10 @@ public:
     //----------------------------------------------------------------------------
     // read/write 'count' bytes.  Returns number of bytes actually read. 
     // will return 0 on failure. 
-    virtual unsigned int read_bytes(void *out_buffer, unsigned int const count) override;
+    virtual std::size_t read_bytes(void* out_buffer, const std::size_t count) override;
 
     //----------------------------------------------------------------------------
-    virtual unsigned int write_bytes(void const* buffer, unsigned int const count) const override;
+    virtual std::size_t write_bytes(const void* buffer, const std::size_t size) const override;
 
     //----------------------------------------------------------------------------
     bool is_open() const;

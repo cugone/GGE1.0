@@ -81,7 +81,7 @@ Net::TCPSocket* TCPSocket::Accept() {
 
 }
 
-int TCPSocket::Send(const void* payload, unsigned int size) {
+std::size_t TCPSocket::Send(const void* payload, std::size_t size) {
     
     if(!IsValid()) {
         return 0;
@@ -91,7 +91,7 @@ int TCPSocket::Send(const void* payload, unsigned int size) {
         return 0;
     }
 
-    unsigned int bytes_sent = ::send(my_socket, (const char*)payload, (int)size, 0);
+    int bytes_sent = ::send(my_socket, (const char*)payload, (int)size, 0);
     if(bytes_sent <= 0) {
         int error = WSAGetLastError();
         PrintNetErrorString(error, "TCPSocket::Send failed. ");
@@ -99,12 +99,12 @@ int TCPSocket::Send(const void* payload, unsigned int size) {
         return 0;
     }
 
-    ASSERT_OR_DIE(bytes_sent == size, "TCPSocket::send assert failed. Bytes sent does not match parameter.\n");
+    ASSERT_OR_DIE(bytes_sent == (int)size, "TCPSocket::send assert failed. Bytes sent does not match parameter.\n");
     return bytes_sent;
 
 }
 
-unsigned int TCPSocket::Receive(void* payload, unsigned int max_size) {
+std::size_t TCPSocket::Receive(void* payload, std::size_t max_size) {
     if(!IsValid() || max_size == 0 || payload == nullptr) {
         return 0;
     }

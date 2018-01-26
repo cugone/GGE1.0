@@ -12,7 +12,7 @@ IndexBuffer::IndexBuffer(RHIDevice* owner, const std::vector<unsigned int>& buff
     D3D11_BUFFER_DESC vb_desc;
     memset(&vb_desc, 0, sizeof(vb_desc));
 
-    vb_desc.ByteWidth = sizeof(unsigned int) * buffer.size();
+    vb_desc.ByteWidth = sizeof(unsigned int) * static_cast<unsigned int>(buffer.size());
     vb_desc.Usage = BufferUsageToD3DUsage(usage);
     vb_desc.BindFlags = BufferBindUsageToD3DBindFlags(bindUsage);
     vb_desc.StructureByteStride = sizeof(unsigned int);

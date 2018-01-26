@@ -75,4 +75,5 @@ void RHIDeviceContext::Dispatch(ComputeJob* job, T& job_data) {
     auto y = static_cast<unsigned int>(dims.y);
     auto z = static_cast<unsigned int>(dims.z);
     _dx_context->Dispatch(x, y, z);
+    SetUnorderedAccessViews(0, nullptr);
 }

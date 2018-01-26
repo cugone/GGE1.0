@@ -48,7 +48,8 @@ public:
     static void ProfilerTrackFree(void* ptr, size_t byte_size);
 
     virtual void Initialize() override;
-    virtual void BeginFrame() override;
+
+	virtual void BeginFrame() override;
     virtual void Render() const override;
     virtual void EndFrame() override;
     virtual bool ProcessSystemMessage(const SystemMessage& msg) override;
@@ -68,6 +69,10 @@ private:
     static bool _snapshotRequested;
     static bool _resumeRequested;
     static bool _isOpen;
+
+	void RegisterCommands();
+
+	static void UnregisterCommands();
     static void FreeOldTrees();
     static void AddNodeToCompletedList(profiler_node_t* node);
     static void VerifyThreadSymmetry(const char* functionName);

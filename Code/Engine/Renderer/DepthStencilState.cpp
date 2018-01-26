@@ -60,7 +60,21 @@ ID3D11DepthStencilState* DepthStencilState::GetDxDepthStencilState() {
 }
 
 bool DepthStencilState::LoadFromXml(RHIDevice* device, const XMLElement& element) {
-
+    //<shader name = "__2D">
+    //    <shaderprogram src = "__unlit" />
+    //    <raster>
+    //        <fill>solid</fill>
+    //        <cull>none</cull>
+    //        <antialiasing>true</antialiasing>
+    //    </raster>
+    //        <blends>
+    //            <blend enable = "true">
+    //            <color src = "src_alpha" dest = "inv_src_alpha" op = "add" />
+    //        </blend>
+    //    </blends>
+    //    <depth enable = "false" writable = "false" />
+    //    <stencil enable = "false" readable = "false" writable = "false" />
+    //    </shader>
     //Default values if no depth stencil element exists.
     bool enableDepthTest = true;
     bool depthWritable = true;
@@ -68,7 +82,7 @@ bool DepthStencilState::LoadFromXml(RHIDevice* device, const XMLElement& element
 
     auto xml_depth = element.FirstChildElement("depth");
     if(xml_depth) {
-        DataUtils::ValidateXmlElement(*xml_depth, "", "", "", "enable,writable,test");
+        DataUtils::ValidateXmlElement(*xml_depth, "depth", "", "", "", "enable,writable,test");
         enableDepthTest = DataUtils::ParseXmlAttribute(*xml_depth, "enable", enableDepthTest);
         depthWritable = DataUtils::ParseXmlAttribute(*xml_depth, "writable", depthWritable);
         std::string comp_func_str = "less";
@@ -87,7 +101,7 @@ bool DepthStencilState::LoadFromXml(RHIDevice* device, const XMLElement& element
 
     auto xml_stencil = element.FirstChildElement("stencil");
     if(xml_stencil) {
-        DataUtils::ValidateXmlElement(*xml_stencil, "", "", "front,back", "enable,writable,readable");
+        DataUtils::ValidateXmlElement(*xml_stencil, "stencil", "", "", "front,back", "enable,writable,readable");
 
         enableStencilRead = DataUtils::ParseXmlAttribute(*xml_stencil, "readable", enableStencilRead);
         enableStencilWrite = DataUtils::ParseXmlAttribute(*xml_stencil, "writable", enableStencilWrite);
@@ -95,7 +109,7 @@ bool DepthStencilState::LoadFromXml(RHIDevice* device, const XMLElement& element
 
         auto xml_stencilfront = xml_stencil->FirstChildElement("front");
         if(xml_stencilfront) {
-            DataUtils::ValidateXmlElement(*xml_stencilfront, "", "fail,depthfail,pass,test");
+            DataUtils::ValidateXmlElement(*xml_stencilfront, "front", "", "fail,depthfail,pass,test");
 
             std::string failFront_str = "keep";
             failFront_str = DataUtils::ParseXmlAttribute(*xml_stencilfront, "fail", failFront_str);
@@ -116,7 +130,7 @@ bool DepthStencilState::LoadFromXml(RHIDevice* device, const XMLElement& element
 
         auto xml_stencilback = xml_stencil->FirstChildElement("back");
         if(xml_stencilback) {
-            DataUtils::ValidateXmlElement(*xml_stencilback, "", "fail,depthfail,pass,test");
+            DataUtils::ValidateXmlElement(*xml_stencilback, "back", "", "fail,depthfail,pass,test");
 
             std::string failBack_str = "keep";
             failBack_str = DataUtils::ParseXmlAttribute(*xml_stencilback, "fail", failBack_str);

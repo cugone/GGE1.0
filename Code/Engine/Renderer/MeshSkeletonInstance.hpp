@@ -21,11 +21,11 @@ public:
 
     void InitializeSkinTransforms();
 
-    Matrix4 get_joint_global_transform(unsigned int joint_idx) const;
+    Matrix4 get_joint_global_transform(std::size_t joint_idx) const;
     Matrix4 get_joint_global_transform(const std::string& joint_name) const;
-    MeshSkeleton::Joint* get_joint_parent(unsigned int joint_idx) const;
+    MeshSkeleton::Joint* get_joint_parent(std::size_t joint_idx) const;
     MeshSkeleton::Joint* get_joint_parent(const std::string& joint_idx) const;
-    unsigned int get_joint_count() const;
+    std::size_t get_joint_count() const;
 
     void apply_motion(MeshMotion* motion, const float time);
     bool is_loaded() const;

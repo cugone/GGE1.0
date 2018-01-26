@@ -708,34 +708,34 @@ Matrix4 Matrix4::GetTransformed(const Matrix4& other) const {
 Vector2 Matrix4::TransformPosition(const Vector2& position) const {
     Vector4 v(position.x, position.y, 0.0f, 1.0f);
 
-    float x = MathUtils::DotProduct(this->GetIBasis(), v);
-    float y = MathUtils::DotProduct(this->GetJBasis(), v);
+    float x = MathUtils::DotProduct(this->GetXComponents(), v);
+    float y = MathUtils::DotProduct(this->GetYComponents(), v);
 
     return Vector2(x, y);
 }
 Vector3 Matrix4::TransformPosition(const Vector3& position) const {
     Vector4 v(position.x, position.y, position.z, 1.0f);
 
-    float x = MathUtils::DotProduct(this->GetIBasis(), v);
-    float y = MathUtils::DotProduct(this->GetJBasis(), v);
-    float z = MathUtils::DotProduct(this->GetKBasis(), v);
+    float x = MathUtils::DotProduct(this->GetXComponents(), v);
+    float y = MathUtils::DotProduct(this->GetYComponents(), v);
+    float z = MathUtils::DotProduct(this->GetZComponents(), v);
 
     return Vector3(x, y, z);
 }
 Vector2 Matrix4::TransformDirection(const Vector2& direction) const {
     Vector4 v(direction.x, direction.y, 0.0f, 0.0f);
 
-    float x = MathUtils::DotProduct(this->GetIBasis(), v);
-    float y = MathUtils::DotProduct(this->GetJBasis(), v);
+    float x = MathUtils::DotProduct(this->GetXComponents(), v);
+    float y = MathUtils::DotProduct(this->GetYComponents(), v);
 
     return Vector2(x, y);
 }
 Vector3 Matrix4::TransformDirection(const Vector3& direction) const {
     Vector4 v(direction.x, direction.y, direction.z, 0.0f);
 
-    float x = MathUtils::DotProduct(this->GetIBasis(), v);
-    float y = MathUtils::DotProduct(this->GetJBasis(), v);
-    float z = MathUtils::DotProduct(this->GetKBasis(), v);
+    float x = MathUtils::DotProduct(this->GetXComponents(), v);
+    float y = MathUtils::DotProduct(this->GetYComponents(), v);
+    float z = MathUtils::DotProduct(this->GetZComponents(), v);
 
     return Vector3(x, y, z);
 }
@@ -848,10 +848,10 @@ Matrix4 Matrix4::operator*(float scalar) const {
 }
 
 Vector4 Matrix4::operator*(const Vector4& rhs) const {
-    return Vector4(MathUtils::DotProduct(this->GetIBasis(), rhs),
-                   MathUtils::DotProduct(this->GetJBasis(), rhs),
-                   MathUtils::DotProduct(this->GetKBasis(), rhs),
-                   MathUtils::DotProduct(this->GetTBasis(), rhs));
+    return Vector4(MathUtils::DotProduct(this->GetXComponents(), rhs),
+                   MathUtils::DotProduct(this->GetYComponents(), rhs),
+                   MathUtils::DotProduct(this->GetZComponents(), rhs),
+                   MathUtils::DotProduct(this->GetWComponents(), rhs));
 }
 
 Matrix4& Matrix4::operator*=(const Matrix4& rhs) {

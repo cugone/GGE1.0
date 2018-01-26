@@ -18,8 +18,8 @@ public:
     //BOTH
     TCPSocket* Accept();
 
-    virtual int Send(const void* payload, unsigned int size) override;
-    virtual unsigned int Receive(void* payload, unsigned int max_size) override;
+    virtual std::size_t Send(const void* payload, std::size_t size) override;
+    virtual std::size_t Receive(void* payload, std::size_t max_size) override;
 
     virtual bool CheckForDisconnect() override;
 

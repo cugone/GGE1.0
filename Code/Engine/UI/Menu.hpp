@@ -4,12 +4,15 @@
 
 namespace UI {
 
+class Canvas;
+
 class Menu : public UI::Element {
 public:
     Menu() = default;
+    Menu(UI::Canvas* parentCanvas);
     virtual ~Menu() = default;
 
-    virtual void Update(float deltaSeconds, const IntVector2& mouse_position) override;
+    virtual void Update(float deltaSeconds, const Vector2& mouse_position) override;
 
     virtual void DebugRender(SimpleRenderer* renderer) const override;
 

@@ -84,13 +84,13 @@ bool BlendState::LoadFromXML(RHIDevice* device, const XMLElement& element) {
 
     auto xml_blends = element.FirstChildElement("blends");
     if(xml_blends != nullptr) {
-        DataUtils::ValidateXmlElement(*xml_blends, "blend", "", "", "alphacoverage");
+        DataUtils::ValidateXmlElement(*xml_blends, "blends", "blend", "", "", "alphacoverage");
         alphaToCoverageEnable = DataUtils::ParseXmlAttribute(*xml_blends, "alphacoverage", false);
 
         std::vector<BlendDesc> desc;
         desc.reserve(DataUtils::GetChildElementCount(*xml_blends, "blend"));
         for(auto xml_blend = xml_blends->FirstChildElement("blend"); xml_blend != nullptr; xml_blend = xml_blend->NextSiblingElement("blend")) {
-            DataUtils::ValidateXmlElement(*xml_blend, "", "", "color,alpha,enablemask", "enable");
+            DataUtils::ValidateXmlElement(*xml_blend, "blend", "", "", "color,alpha,enablemask", "enable");
 
             BlendDesc cur_desc;
 
@@ -98,7 +98,7 @@ bool BlendState::LoadFromXML(RHIDevice* device, const XMLElement& element) {
 
             auto xml_color = xml_blend->FirstChildElement("color");
             if(xml_color != nullptr) {
-                DataUtils::ValidateXmlElement(*xml_color, "", "src,dest,op");
+                DataUtils::ValidateXmlElement(*xml_color, "color", "", "src,dest,op");
                 std::string source_factor_str = "one";
                 source_factor_str = DataUtils::ParseXmlAttribute(*xml_color, "src", source_factor_str);
                 std::string dest_factor_str = "zero";
@@ -113,7 +113,7 @@ bool BlendState::LoadFromXML(RHIDevice* device, const XMLElement& element) {
 
             auto xml_alpha = xml_blend->FirstChildElement("alpha");
             if(xml_alpha != nullptr) {
-                DataUtils::ValidateXmlElement(*xml_alpha, "", "src,dest,op");
+                DataUtils::ValidateXmlElement(*xml_alpha, "alpha", "", "src,dest,op");
                 std::string source_factor_str = "one";
                 source_factor_str = DataUtils::ParseXmlAttribute(*xml_color, "src", source_factor_str);
                 std::string dest_factor_str = "zero";
@@ -128,7 +128,7 @@ bool BlendState::LoadFromXML(RHIDevice* device, const XMLElement& element) {
 
             auto xml_mask = xml_blend->FirstChildElement("enablemask");
             if(xml_mask != nullptr) {
-                DataUtils::ValidateXmlElement(*xml_mask, "", "value");
+                DataUtils::ValidateXmlElement(*xml_mask, "enablemask", "", "value");
                 std::string mask_str = "all";
                 mask_str = DataUtils::ParseXmlAttribute(*xml_mask, "value", mask_str);
 

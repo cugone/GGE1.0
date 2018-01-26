@@ -7,20 +7,9 @@
 #include "Engine/Math/IntVector2.hpp"
 
 #include "Engine/Renderer/Renderer.hpp"
+#include "Engine/Renderer/SimpleRenderer.hpp"
 #include "Engine/Renderer/Texture.hpp"
 #include "Engine/Renderer/Texture2D.hpp"
-
-
-//SpriteSheet::SpriteSheet(const std::string& imageFilePath, int tilesWide, int tilesHigh)
-//: m_spriteSheetTexture()
-//, m_spriteLayout(IntVector2::ONE)
-//{
-//    namespace FS = std::experimental::filesystem;
-//    FS::path p(imageFilePath);
-//    if(FS::exists(p) == false) {
-//
-//    }
-//}
 
 SpriteSheet::SpriteSheet(const Texture& texture, int tilesWide, int tilesHigh)
     : m_spriteSheetTexture(&texture)
@@ -38,8 +27,61 @@ SpriteSheet::SpriteSheet(const Texture2D* texture, int tilesWide, int tilesHigh)
     /* DO NOTHING */
 }
 
+SpriteSheet::SpriteSheet(SimpleRenderer& renderer, const XMLElement& elem)
+    : m_spriteSheetTexture(nullptr)
+    , m_spriteSheetTexture2D(nullptr)
+    , m_spriteLayout{1,1}
+{
+    LoadFromXML(renderer, elem);
+}
+
+SpriteSheet::SpriteSheet(Renderer& renderer, const XMLElement& elem)
+    : m_spriteSheetTexture(nullptr)
+    , m_spriteSheetTexture2D(nullptr)
+    , m_spriteLayout{1,1}
+{
+    LoadFromXML(renderer, elem);
+}
+
+SpriteSheet::SpriteSheet(SimpleRenderer& renderer, const std::string& texturePath, int tilesWide, int tilesHigh)
+    : m_spriteSheetTexture(nullptr)
+    , m_spriteSheetTexture2D(renderer.CreateOrGetTexture(texturePath))
+    , m_spriteLayout{tilesWide, tilesHigh}
+{
+    /* DO NOTHING */
+}
+
+SpriteSheet::SpriteSheet(Renderer& renderer, const std::string& texturePath, int tilesWide, int tilesHigh)
+    : m_spriteSheetTexture(renderer.CreateOrGetTexture(texturePath))
+    , m_spriteSheetTexture2D(nullptr)
+    , m_spriteLayout{tilesWide, tilesHigh}
+{
+    /* DO NOTHING */
+}
+
 SpriteSheet::~SpriteSheet() {
     /* DO NOTHING */
+}
+
+void SpriteSheet::LoadFromXML(Renderer& renderer, const XMLElement& elem) {
+    DataUtils::ValidateXmlElement(elem, "spritesheet", "", "src,dimensions");
+
+    m_spriteLayout = DataUtils::ParseXmlAttribute(elem, "dimensions", m_spriteLayout);
+
+    std::string texturePath;
+    texturePath = DataUtils::ParseXmlAttribute(elem, "src", texturePath);
+    m_spriteSheetTexture = renderer.CreateOrGetTexture(texturePath);
+}
+
+void SpriteSheet::LoadFromXML(SimpleRenderer& renderer, const XMLElement& elem) {
+    DataUtils::ValidateXmlElement(elem, "spritesheet", "", "src,dimensions");
+
+    m_spriteLayout = DataUtils::ParseXmlAttribute(elem, "dimensions", m_spriteLayout);
+
+    std::string texturePath;
+    texturePath = DataUtils::ParseXmlAttribute(elem, "src", texturePath);
+
+    m_spriteSheetTexture2D = renderer.CreateOrGetTexture(texturePath);
 }
 
 AABB2 SpriteSheet::GetTexCoordsForSpriteCoords(int spriteX, int spriteY) const {

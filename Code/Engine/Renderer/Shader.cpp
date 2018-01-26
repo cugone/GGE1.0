@@ -108,19 +108,14 @@ RasterState* Shader::GetRasterState() const {
 bool Shader::LoadFromXML(const XMLElement& element) {
     namespace FS = std::experimental::filesystem;
 
-    auto nameAsCstr = element.Name();
-    bool is_shader = std::string(nameAsCstr ? nameAsCstr : "") == "shader";
-    if(!is_shader) {
-        return false;
-    }
-    DataUtils::ValidateXmlElement(element, std::string("shaderprogram"), std::string("name"), std::string("depth,stencil,blends,raster,sampler"));
+    DataUtils::ValidateXmlElement(element, "shader", "shaderprogram", "name", "depth,stencil,blends,raster,sampler");
 
     _name = DataUtils::ParseXmlAttribute(element, std::string("name"), "UNNAMED_SHADER");
 
     auto xml_SP = element.FirstChildElement("shaderprogram");
-    DataUtils::ValidateXmlElement(*xml_SP, std::string(""), std::string("src"));
+    DataUtils::ValidateXmlElement(*xml_SP, "shaderprogram", "", "src");
 
-    std::string sp_src = DataUtils::ParseXmlAttribute(*xml_SP, std::string("src"), "");
+    std::string sp_src = DataUtils::ParseXmlAttribute(*xml_SP, "src", "");
     if(sp_src.empty()) {
         ERROR_AND_DIE("shaderprogram element has empty src attribute.");
     }

@@ -25,18 +25,18 @@ float MeshMotion::get_duration() const {
     return (poses.size() - 1) / framerate;
 }
 
-unsigned int MeshMotion::get_frame_count() const {
+std::size_t MeshMotion::get_frame_count() const {
     return poses.size();
 }
 
-const MeshPose& MeshMotion::get_pose(unsigned int frame_idx) const {
+const MeshPose& MeshMotion::get_pose(std::size_t frame_idx) const {
     if(frame_idx >= poses.size()) {
         ERROR_AND_DIE("MeshMotion::get_pose: frame index out of bounds.")
     }
     return poses[frame_idx];
 }
 
-MeshPose& MeshMotion::get_pose(unsigned int frame_idx) {
+MeshPose& MeshMotion::get_pose(std::size_t frame_idx) {
     return const_cast<MeshPose&>(static_cast<const MeshMotion&>(*this).get_pose(frame_idx));
 }
 
@@ -54,7 +54,7 @@ void MeshMotion::evaluate(MeshPose& out, float time) const {
     //return;
 
     MeshPose result;
-    unsigned int s = (std::min)(firstKeyFrame.local_transforms.size(), secondKeyFrame.local_transforms.size());
+    std::size_t s = (std::min)(firstKeyFrame.local_transforms.size(), secondKeyFrame.local_transforms.size());
     for(unsigned int pose_idx = 0; pose_idx < s; ++pose_idx) {
         const auto& first_transform = firstKeyFrame.local_transforms[pose_idx];
         const auto& second_transform = secondKeyFrame.local_transforms[pose_idx];

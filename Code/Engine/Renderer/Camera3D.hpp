@@ -9,6 +9,7 @@
 
 class TextureBase;
 class SimpleRenderer;
+class Renderer;
 
 class Camera3D {
 public:
@@ -75,12 +76,13 @@ public:
     void SetupView(float fovVerticalDegrees, float aspectRatio, float nearDistance, float farDistance, const Vector3& worldUp = Vector3::Y_AXIS);
     CameraFrustum CalcFrustum(const Vector3& worldUp = Vector3::Y_AXIS) const;
 
-    void SetRenderTarget(TextureBase* target);
+    void SetRenderTarget(TextureBase* colorTarget, TextureBase* depthstencil = nullptr);
     TextureBase* GetRenderTarget() const;
 
     Vector3 ScreenToWorldCoordinates(SimpleRenderer* renderer, const Vector2& screen_coords);
     Vector2 WorldToScreenCoordinates(SimpleRenderer* renderer, const Vector3& world_coords);
 
+    Vector3 NdcCoordinatesFromScreenCoords(SimpleRenderer* renderer, const Vector2& screen_coords);
 
 protected:
 private:
@@ -88,4 +90,5 @@ private:
     mutable Matrix4 _projection = Matrix4::GetIdentity();
     mutable Matrix4 _view = Matrix4::GetIdentity();
     TextureBase* _renderTarget = nullptr;
+    TextureBase* _renderDepthStencil = nullptr;
 };

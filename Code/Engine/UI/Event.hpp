@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <vector>
 
 namespace UI {
 
@@ -13,8 +14,12 @@ enum class EventType {
     HOVER,
     MOUSEDOWN,
     MOUSEUP,
+	MOUSECLICK,
+	MOUSEDBLCLICK,
     KEYDOWN,
     KEYUP,
+	DRAGSTART,
+	DRAGEND,
     MAX,
 };
 
@@ -36,11 +41,16 @@ public:
     virtual ~Event() = 0;
 
     EventType type = EventType::UNKNOWN;
+    virtual void Trigger();
     virtual void Trigger(EventData& event) = 0;
     virtual void Subscribe(const std::function<void(EventData& event)>& callback) = 0;
+
+    EventData data = EventData{};
+
 protected:
     std::vector<Element*> _subscribers;
     std::function<void(EventData& data)> _callback = [](EventData&) {};
+    
 private:
 };
 

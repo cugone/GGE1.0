@@ -39,7 +39,15 @@ bool InputSystem::IsKeyDown(const KeyCode& keyIndex) const {
 }
 
 bool InputSystem::WasKeyJustPressed(const KeyCode& keyIndex) const {
-    return IsKeyDown(keyIndex) && m_keyStates[ConvertKeyCodeToWinVK(keyIndex)].m_justChanged;
+	return IsKeyDown(keyIndex) && DidKeyChange(keyIndex);
+}
+
+bool InputSystem::DidKeyChange(const KeyCode& keyIndex) const {
+	return m_keyStates[ConvertKeyCodeToWinVK(keyIndex)].m_justChanged;
+}
+
+bool InputSystem::DidKeyNotChange(const KeyCode& keyIndex) const {
+	return !m_keyStates[ConvertKeyCodeToWinVK(keyIndex)].m_justChanged;
 }
 
 bool InputSystem::IsKeyUp(const KeyCode& keyIndex) const {
@@ -47,11 +55,11 @@ bool InputSystem::IsKeyUp(const KeyCode& keyIndex) const {
 }
 
 bool InputSystem::WasKeyJustReleased(const KeyCode& keyIndex) const {
-    return IsKeyUp(keyIndex) && m_keyStates[ConvertKeyCodeToWinVK(keyIndex)].m_justChanged;
+    return IsKeyUp(keyIndex) && DidKeyChange(keyIndex);
 }
 
 bool InputSystem::IsKeyPressed(const KeyCode& keyIndex) const {
-    return IsKeyDown(keyIndex) && !m_keyStates[ConvertKeyCodeToWinVK(keyIndex)].m_justChanged;
+    return IsKeyDown(keyIndex) && !DidKeyChange(keyIndex);
 }
 
 bool InputSystem::WasMouseJustScrolledUp() const {
@@ -60,6 +68,18 @@ bool InputSystem::WasMouseJustScrolledUp() const {
 
 bool InputSystem::WasMouseJustScrolledDown() const {
     return GetMouseWheelPositionNormalized() < 0;
+}
+
+bool InputSystem::WasMouseLeftDoubleClicked() const {
+	return m_wasMouseLeftDoubleClicked;
+}
+
+bool InputSystem::WasMouseMiddleDoubleClicked() const {
+	return m_wasMouseMiddleDoubleClicked;
+}
+
+bool InputSystem::WasMouseRightDoubleClicked() const {
+	return m_wasMouseRightDoubleClicked;
 }
 
 void InputSystem::BeginFrame() {
@@ -75,6 +95,7 @@ void InputSystem::EndFrame() {
         m_keyState.m_justChanged = false;
     }
     m_mouseWheelPosition = 0;
+	SetMouseDoubleClickState(false);
 }
 
 void InputSystem::Render() const {
@@ -88,14 +109,35 @@ bool InputSystem::ProcessSystemMessage(const SystemMessage& msg) {
         case WindowsSystemMessage::KEYBOARD_KEYUP: RegisterKeyUp(keyCode); return true;
         case WindowsSystemMessage::MOUSE_LBUTTONDOWN: RegisterKeyDown(keyCode); return true;
         case WindowsSystemMessage::MOUSE_LBUTTONUP: RegisterKeyUp(keyCode); return true;
+		case WindowsSystemMessage::MOUSE_LBUTTONDBLCLK: SetMouseLeftDoubleClicked(true); return true;
         case WindowsSystemMessage::MOUSE_RBUTTONDOWN: RegisterKeyDown(keyCode); return true;
         case WindowsSystemMessage::MOUSE_RBUTTONUP: RegisterKeyUp(keyCode); return true;
+		case WindowsSystemMessage::MOUSE_RBUTTONDBLCLK: SetMouseRightDoubleClicked(true); return true;
         case WindowsSystemMessage::MOUSE_MBUTTONDOWN: RegisterKeyDown(keyCode); return true;
         case WindowsSystemMessage::MOUSE_MBUTTONUP: RegisterKeyUp(keyCode); return true;
+		case WindowsSystemMessage::MOUSE_MBUTTONDBLCLK: SetMouseMiddleDoubleClicked(true); return true;
         case WindowsSystemMessage::MOUSE_MOUSEWHEEL: UpdateMouseWheel(msg); return true;
         case WindowsSystemMessage::MOUSE_MOUSEMOVE: UpdateMousePosition(msg); return true;
     }
     return false;
+}
+
+void InputSystem::SetMouseDoubleClickState(bool value) {
+	SetMouseLeftDoubleClicked(value);
+	SetMouseRightDoubleClicked(value);
+	SetMouseMiddleDoubleClicked(value);
+}
+
+bool InputSystem::SetMouseMiddleDoubleClicked(bool value) {
+	return m_wasMouseMiddleDoubleClicked = value;
+}
+
+bool InputSystem::SetMouseRightDoubleClicked(bool value) {
+	return m_wasMouseRightDoubleClicked = value;
+}
+
+bool InputSystem::SetMouseLeftDoubleClicked(bool value) {
+	return m_wasMouseLeftDoubleClicked = value;
 }
 
 const Vector2& InputSystem::GetMouseCoords() const {
@@ -159,6 +201,10 @@ void InputSystem::ToggleLockMouseToCenter() {
 
 const XboxController& InputSystem::GetXboxController(int controllerIndex) const {
     return m_xboxControllers[controllerIndex];
+}
+
+XboxController& InputSystem::GetXboxController(int controllerIndex) {
+	return const_cast<XboxController&>(static_cast<const InputSystem&>(*this).GetXboxController(controllerIndex));
 }
 
 void InputSystem::ShowMouseCursor(bool isNowVisible) {

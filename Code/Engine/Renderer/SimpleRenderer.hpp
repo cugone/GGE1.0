@@ -152,8 +152,8 @@ public:
     void SetShader(Shader* shader = nullptr);
 
     void DrawTextLine( const PrimitiveType& topology, VertexBuffer* vbo, unsigned int const vertex_count);
-    void DrawIndexed(const PrimitiveType& topology, VertexBuffer* vbo, IndexBuffer* ibo, unsigned int const vertex_count);
-    void Draw(const PrimitiveType& topology, VertexBuffer* vbo, unsigned int const vertex_count);
+    void DrawIndexed(const PrimitiveType& topology, VertexBuffer* vbo, IndexBuffer* ibo, const std::size_t vertex_count);
+    void Draw(const PrimitiveType& topology, VertexBuffer* vbo, const std::size_t vertex_count);
 
     void SetShaderProgram(ShaderProgram* program = nullptr);
     void SetComputeShader(ComputeShader* shader = nullptr);
@@ -194,8 +194,8 @@ public:
     void SetProjectionMatrix(const Matrix4& matrix);
 
     void SetOrthoProjection(const Vector2& leftBottom, const Vector2& rightTop, const Vector2& near_far);
-    void SetOrthoProjection(const Vector2& dimensions, const Vector2& origin);
     void SetPerspectiveProjection(const Vector2& vfov_aspect, const Vector2& nz_fz);
+    void SetPerspectiveProjectionFromCamera(const Camera3D& camera);
     void SetViewMatrix(const Matrix4& viewMatrix);
     void SetModelMatrix(const Matrix4& modelMatrix);
     void AppendModelMatrix(const Matrix4& modelMatrix);
@@ -210,6 +210,7 @@ public:
     KerningFont* CreateOrGetFont(const std::string& name);
     BitmapFont* CreateBitmapFont(const std::string& filepath, int glyphWidth, int glyphHeight);
     SpriteSheet* CreateSpriteSheet(const std::string& filepath, int tileWidth, int tileHeight);
+    SpriteSheet* CreateSpriteSheet(const XMLElement& elem);
 
     ShaderProgram* CreateOrGetShaderProgram(const std::string& name);
     ComputeShader* CreateOrGetComputeShader(const std::string& name);

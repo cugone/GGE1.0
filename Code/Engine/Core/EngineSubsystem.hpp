@@ -103,12 +103,19 @@ enum class WindowsSystemMessage : unsigned int {
     MESSAGE_NOT_SUPPORTED,
 };
 
+#ifdef _WIN64
+struct SystemMessage {
+    WindowsSystemMessage wmMessageCode;
+    unsigned __int64 wParam;
+    __int64 lParam;
+};
+#else
 struct SystemMessage {
     WindowsSystemMessage wmMessageCode;
     unsigned int wParam;
     long lParam;
 };
-
+#endif
 class EngineSubsystem {
 public:
 	EngineSubsystem();

@@ -31,7 +31,7 @@ float BitmapFont::CalcMultilineHeight(const BitmapFont& font, const std::string&
     return CalcMultilineHeight(text, font.m_height);
 }
 float BitmapFont::CalcMultilineHeight(const std::string& text, float fontHeight) {
-    int line_count = std::count(text.begin(), text.end(), '\n') + 1;
+    auto line_count = std::count(text.begin(), text.end(), '\n') + 1;
     return fontHeight * line_count;
 }
 float BitmapFont::CalcMultilineHeight(const std::string& text) {

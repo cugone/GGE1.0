@@ -162,7 +162,7 @@ void RHIDeviceContext::SetMaterial(Material* material) {
     }
     SetShader(material->GetShader());
     auto tex_count = material->GetTextureCount();
-    for(std::size_t i = 0; i < tex_count; ++i) {
+    for(unsigned int i = 0; i < tex_count; ++i) {
         SetTexture(i, material->GetTexture(i));
     }
 }

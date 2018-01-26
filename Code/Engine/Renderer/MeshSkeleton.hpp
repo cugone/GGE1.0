@@ -50,27 +50,27 @@ public:
                    const Matrix4& transform);
 
     // get number of joints/bones in this skeleton.
-    unsigned int get_joint_count() const;
+    std::size_t get_joint_count() const;
 
     // Get a joint index by name, returns
     // (unsigned int)(-1) if it doesn't exist.
-    unsigned int get_joint_index(const std::string& name) const;
-    unsigned int get_joint_index(const std::string& name);
+    std::size_t get_joint_index(const std::string& name) const;
+    std::size_t get_joint_index(const std::string& name);
 
     // Get the global transform for a joint.
-    Matrix4 get_joint_transform(unsigned int joint_idx) const;
-    Matrix4 get_joint_transform(unsigned int joint_idx);
+    Matrix4 get_joint_transform(std::size_t joint_idx) const;
+    Matrix4 get_joint_transform(std::size_t joint_idx);
     
     Matrix4 get_joint_transform(const std::string& name) const;
     Matrix4 get_joint_transform(const std::string& name);
 
-    void set_joint_transform(unsigned int joint_idx, const Matrix4& transform);
+    void set_joint_transform(std::size_t joint_idx, const Matrix4& transform);
     void set_joint_transform(const std::string& name, const Matrix4& transoform);
 
-    Joint* get_joint_parent(unsigned int joint_idx) const;
+    Joint* get_joint_parent(std::size_t joint_idx) const;
     Joint* get_joint_parent(const std::string& name) const;
 
-    std::string get_joint_name(unsigned int joint_idx) const;
+    std::string get_joint_name(std::size_t joint_idx) const;
 
     bool is_loaded() const;
 

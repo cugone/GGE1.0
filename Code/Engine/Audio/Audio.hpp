@@ -1,7 +1,10 @@
 #pragma once
 
-//---------------------------------------------------------------------------
-#pragma comment( lib, "ThirdParty/fmod/fmodex_vc" ) // Link in the fmodex_vc.lib static library
+#ifdef _WIN64
+#pragma comment( lib, "ThirdParty/fmod/fmod64_vc" ) // Link in the 64-bit fmod64_vc.lib static library
+#elif defined(_WIN32)
+#pragma comment( lib, "ThirdParty/fmod/fmod_vc" ) // Link in the 32-bit fmod_vc.lib static library
+#endif
 
 
 //---------------------------------------------------------------------------
@@ -14,8 +17,8 @@
 
 
 //---------------------------------------------------------------------------
-typedef unsigned int SoundID;
-typedef void* AudioChannelHandle;
+using SoundID = std::size_t;
+using AudioChannelHandle = void*;
 const unsigned int MISSING_SOUND_ID = 0xffffffff;
 
 

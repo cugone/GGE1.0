@@ -14,8 +14,8 @@ public:
     Socket();
     ~Socket();
 
-    virtual int Send(const void* payload, unsigned int size) = 0;
-    virtual unsigned int Receive(void* payload, unsigned int max_size) = 0;
+    virtual std::size_t Send(const void* payload, std::size_t size) = 0;
+    virtual std::size_t Receive(void* payload, std::size_t max_size) = 0;
     virtual bool CheckForDisconnect() = 0;
 
     virtual bool IsValid() const;

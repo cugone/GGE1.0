@@ -46,7 +46,6 @@ Console::Console(SimpleRenderer* renderer, KerningFont* font, const Vector2& top
     , _defaultSecondsPerBlink(0.33f)
     , _requestQuit(false)
     , _showCaret(false)
-    , _showProfiler(false)
     , _shiftModifier(false)
     , _text_color()
     , _isOpen(false)
@@ -481,12 +480,6 @@ void Console::RegisterCommands() {
     }
     , "Displays all available commands or commands starting with specific string.");
 
-    RegisterCommand("memstat",
-    [&](const std::string& /*args*/) {
-        g_theProfiler->ToggleOpenClosed();
-    }
-    , "Shows/Hides Profile Visualizer");
-
     RegisterCommand("log_liveallocs",
     [&](const std::string& /*args*/) {
         std::thread t(&Memory::PrintLiveAllocations);
@@ -502,7 +495,7 @@ void Console::RegisterCommands() {
         arg_set.GetNext(arguments);
 
         std::array<char, 512> buf;
-        ::GetModuleFileNameA(nullptr, buf.data(), buf.size() );
+        ::GetModuleFileNameA(nullptr, buf.data(), static_cast<DWORD>(buf.size()) );
 
         STARTUPINFO si = { sizeof(STARTUPINFO) };
         si.cb = sizeof(si);
@@ -542,8 +535,8 @@ void Console::Render() const {
 
 void Console::DrawBackground() const {
     const auto& window_dimensions = _renderer->_rhi_output->GetDimensions();
-    float window_height = static_cast<float>(window_dimensions.y);
-    float window_width  = static_cast<float>(window_dimensions.x);
+    auto window_height = static_cast<float>(window_dimensions.y);
+    auto window_width  = static_cast<float>(window_dimensions.x);
     _renderer->SetOrthoProjection(Vector2(0.0f, window_height), Vector2(window_width, 0.0f), Vector2(0.0f, 1.0f));
     _renderer->SetMaterial(_renderer->GetMaterial("__console"));
     _renderer->SetViewMatrix(Matrix4::GetIdentity());

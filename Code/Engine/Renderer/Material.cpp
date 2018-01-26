@@ -86,19 +86,13 @@ void Material::SetShader(Shader* shader) {
 bool Material::LoadFromXml(const XMLElement& element) {
     namespace FS = std::experimental::filesystem;
 
-    auto nameAsCstr = element.Name();
-    bool is_material = std::string(nameAsCstr ? nameAsCstr : "") == "material";
-    if(!is_material) {
-        return false;
-    }
+    DataUtils::ValidateXmlElement(element, "material", "", "name", "shader,textures");
 
-    DataUtils::ValidateXmlElement(element, "", "name", "shader,textures");
-
-    _name = DataUtils::ParseXmlAttribute(element, std::string("name"), std::string(""));
+    _name = DataUtils::ParseXmlAttribute(element, "name", _name);
 
     auto xml_shader = element.FirstChildElement("shader");
     if(xml_shader != nullptr) {
-        DataUtils::ValidateXmlElement(*xml_shader, "", "src");
+        DataUtils::ValidateXmlElement(*xml_shader, "shader", "", "src");
         auto file = DataUtils::ParseXmlAttribute(*xml_shader, "src", "");
         FS::path p(file);
         auto shader = _renderer->GetShader(p.string());
@@ -108,12 +102,12 @@ bool Material::LoadFromXml(const XMLElement& element) {
         _shader = shader;
     }
 
-    auto xml_Textures = element.FirstChildElement("textures");
+    auto xml_textures = element.FirstChildElement("textures");
     auto loaded_textures = _renderer->GetLoadedTextures();
     auto invalid_tex = _renderer->GetTexture("__invalid");
-    if(xml_Textures != nullptr) {
+    if(xml_textures != nullptr) {
 
-        auto xml_diffuse  = xml_Textures->FirstChildElement("diffuse");
+        auto xml_diffuse  = xml_textures->FirstChildElement("diffuse");
         if(xml_diffuse) {
             auto file = DataUtils::ParseXmlAttribute(*xml_diffuse, "src", "");
             FS::path p(file);
@@ -125,7 +119,7 @@ bool Material::LoadFromXml(const XMLElement& element) {
             _textures[0] = tex;
         }
 
-        auto xml_normal = xml_Textures->FirstChildElement("normal");
+        auto xml_normal = xml_textures->FirstChildElement("normal");
         if(xml_normal) {
             auto file = DataUtils::ParseXmlAttribute(*xml_normal, "src", "");
             FS::path p(file);
@@ -137,7 +131,7 @@ bool Material::LoadFromXml(const XMLElement& element) {
             _textures[1] = tex;
         }
 
-        auto xml_lighting = xml_Textures->FirstChildElement("lighting");
+        auto xml_lighting = xml_textures->FirstChildElement("lighting");
         if(xml_lighting) {
             auto file = DataUtils::ParseXmlAttribute(*xml_lighting, "src", "");
             FS::path p(file);
@@ -149,7 +143,7 @@ bool Material::LoadFromXml(const XMLElement& element) {
             _textures[2] = tex;
         }
 
-        auto xml_specular = xml_Textures->FirstChildElement("specular");
+        auto xml_specular = xml_textures->FirstChildElement("specular");
         if(xml_specular) {
             auto file = DataUtils::ParseXmlAttribute(*xml_specular, "src", "");
             FS::path p(file);
@@ -161,7 +155,7 @@ bool Material::LoadFromXml(const XMLElement& element) {
             _textures[3] = tex;
         }
 
-        auto xml_occlusion = xml_Textures->FirstChildElement("occlusion");
+        auto xml_occlusion = xml_textures->FirstChildElement("occlusion");
         if(xml_occlusion) {
             auto file = DataUtils::ParseXmlAttribute(*xml_occlusion, "src", "");
             FS::path p(file);
@@ -173,7 +167,7 @@ bool Material::LoadFromXml(const XMLElement& element) {
             _textures[4] = tex;
         }
 
-        auto xml_emissive = xml_Textures->FirstChildElement("emissive");
+        auto xml_emissive = xml_textures->FirstChildElement("emissive");
         if(xml_emissive) {
             auto file = DataUtils::ParseXmlAttribute(*xml_emissive, "src", "");
             FS::path p(file);
@@ -185,16 +179,16 @@ bool Material::LoadFromXml(const XMLElement& element) {
             _textures[5] = tex;
         }
 
-        auto numTextures = DataUtils::GetChildElementCount(*xml_Textures, "texture");
+        auto numTextures = DataUtils::GetChildElementCount(*xml_textures, "texture");
         if(numTextures >= MAX_CUSTOM_TEXTURE_COUNT) {
             g_theFileLogger->LogWarnf("Max custom texture count exceeded. Cannot bind more than %i custom textures.", MAX_CUSTOM_TEXTURE_COUNT);
         }
         AddTextureSlots(numTextures);
-        for(auto xml_texture = xml_Textures->FirstChildElement("texture");
+        for(auto xml_texture = xml_textures->FirstChildElement("texture");
             xml_texture != nullptr;
             xml_texture = xml_texture->NextSiblingElement("texture"))
         {
-            DataUtils::ValidateXmlElement(*xml_texture, "", "index,src");
+            DataUtils::ValidateXmlElement(*xml_texture, "texture", "", "index,src");
             std::size_t index = CUSTOM_TEXTURE_INDEX_OFFSET + DataUtils::ParseXmlAttribute(*xml_texture, std::string("index"), 0u);
             if(index >= MAX_CUSTOM_TEXTURE_COUNT) {
                 continue;

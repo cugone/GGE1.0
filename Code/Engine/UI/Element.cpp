@@ -3,23 +3,74 @@
 #include <algorithm>
 #include <sstream>
 
-#include "Engine/Math/MathUtils.hpp"
-
+#include "Engine/Core/ErrorWarningAssert.hpp"
 #include "Engine/Core/KerningFont.hpp"
+
+#include "Engine/Input/InputSystem.hpp"
+
+#include "Engine/Math/MathUtils.hpp"
 
 #include "Engine/Renderer/SimpleRenderer.hpp"
 
-#include "Engine/UI/EventOnEnter.hpp"
+#include "Engine/UI.hpp"
 
 namespace UI {
 
-UI::EventOnEnter* Element::_onEnter = nullptr;
-
 Element::Element() {
     _onEnter = new EventOnEnter();
+    _onLeave = new EventOnLeave();
+    _onHover = new EventOnHover();
+	_onMouseDown = new EventOnMouseDown();
+	_onMouseUp = new EventOnMouseUp();
+	_onMouseClick = new EventOnMouseClick();
+	_onMouseDblClick = new EventOnMouseDblClick();
+	_onStartDrag = new EventOnStartDrag();
+	_onEndDrag = new EventOnEndDrag();
+
+}
+
+Element::Element(UI::Canvas* parentCanvas) {
+    _parentCanvas = parentCanvas;
+    _onEnter = new EventOnEnter();
+    _onLeave = new EventOnLeave();
+    _onHover = new EventOnHover();
+	_onMouseDown = new EventOnMouseDown();
+	_onMouseUp = new EventOnMouseUp();
+	_onMouseClick = new EventOnMouseClick();
+	_onMouseDblClick = new EventOnMouseDblClick();
+	_onStartDrag = new EventOnStartDrag();
+	_onEndDrag = new EventOnEndDrag();
 }
 
 Element::~Element() {
+
+	delete _onEndDrag;
+	_onEndDrag = nullptr;
+
+	delete _onStartDrag;
+	_onStartDrag = nullptr;
+
+	delete _onMouseDblClick;
+	_onMouseDblClick = nullptr;
+
+	delete _onMouseClick;
+	_onMouseClick = nullptr;
+
+	delete _onMouseUp;
+	_onMouseUp = nullptr;
+
+	delete _onMouseDown;
+	_onMouseDown = nullptr;
+
+    delete _onHover;
+    _onHover = nullptr;
+
+    delete _onLeave;
+    _onLeave = nullptr;
+
+    delete _onEnter;
+    _onEnter = nullptr;
+
     RemoveSelf();
     DestroyAllChildren();
 }
@@ -243,6 +294,14 @@ bool Element::IsDirty() const {
     return _dirtyBounds;
 }
 
+void Element::SetParentCanvas(UI::Canvas* parentCanvas) {
+    _parentCanvas = parentCanvas;
+}
+
+UI::Canvas* Element::GetParentCanvas() const {
+    return _parentCanvas;
+}
+
 AABB2 Element::GetParentLocalBounds() const {
     return _parent ? _parent->CalcLocalBounds() : AABB2{ 0.0f, 0.0f, _size.unit.x, _size.unit.y };
 }
@@ -263,8 +322,40 @@ Matrix4 Element::GetWorldTransform() const {
     return GetParentWorldTransform() * GetLocalTransform();
 }
 
-void Element::Update(float /*deltaSeconds*/, const IntVector2& /*mouse_position*/) {
-    /* DO NOTHING */
+void Element::Update(float /*deltaSeconds*/, const Vector2& canvas_position) {
+
+    _current_canvas_position = canvas_position;
+
+    auto inv_M = Matrix4::CalculateInverse(GetWorldTransform());
+    auto cur_nh_screen_to_world = inv_M * Vector4(_current_canvas_position, 0.0f, 1.0f);
+    auto cur_h_screen_to_world = Vector4::CalcHomogeneous(cur_nh_screen_to_world);
+    auto cur_screen_to_world = Vector2(cur_h_screen_to_world.x, cur_h_screen_to_world.y);
+
+    bool isMouseInElement = _bounds.IsPointInside(cur_screen_to_world);
+
+    bool didMouseJustEnter = !_wasMouseInElement && isMouseInElement;
+    bool didMouseHover = _wasMouseInElement && isMouseInElement;
+    bool didMouseJustLeave = _wasMouseInElement && !isMouseInElement;
+    bool didMouseMove = _last_canvas_position != _current_canvas_position;
+	auto pCanvas = _parentCanvas;
+	InputSystem* input = nullptr;
+	UI::UiSystem* ui = nullptr;
+	if (pCanvas) {
+		input = pCanvas->GetInput();
+		ui = pCanvas->GetUISystem();
+	}
+	bool hasInput = pCanvas && input && ui;
+	if (hasInput) {
+		HandleMouseClicks(isMouseInElement, input, didMouseJustLeave);
+		HandleMouseMovement(didMouseMove, didMouseJustEnter, didMouseHover, didMouseJustLeave);
+		HandleKeyboard(isMouseInElement, input);
+	}
+    _wasMouseInElement = isMouseInElement;
+    _last_canvas_position = _current_canvas_position;
+}
+
+Vector2 Element::GetRootCanvasPosition() {
+    return _parentCanvas ? _parentCanvas->GetLocalPosition() : Vector2::ZERO;
 }
 
 void Element::DebugRenderBottomUp(SimpleRenderer* renderer) const {
@@ -292,7 +383,7 @@ void Element::DebugRenderBoundsAndPivot(SimpleRenderer* renderer) const {
     renderer->DrawDebugX2D(Vector2::ZERO, 10.0f, 1.0f, Rgba::RED);
 }
 
-void Element::UpdateChildren(float deltaSeconds, const IntVector2& mouse_position) {
+void Element::UpdateChildren(float deltaSeconds, const Vector2& mouse_position) {
     for(const auto& c : _children) {
         if(c) {
             c->Update(deltaSeconds, mouse_position);
@@ -326,6 +417,17 @@ void Element::SetDebugColor(const Rgba& edges, const Rgba& fill) {
     _debugEdge = edges;
 }
 
+std::pair<const Rgba&, const Rgba&> Element::GetDebugColor() {
+    return std::make_pair(GetDebugEdgeColor(), GetDebugFillColor());
+}
+
+const Rgba& Element::GetDebugEdgeColor() {
+    return _debugEdge;
+}
+
+const Rgba& Element::GetDebugFillColor() {
+    return _debugFill;
+}
 bool Element::IsChild() const {
     return _parent != nullptr;
 }
@@ -335,11 +437,208 @@ bool Element::IsParent() const {
 }
 
 void Element::SetFont(KerningFont* f) {
+    _dirtyBounds = true;
     _font = f;
 }
 
 KerningFont* Element::GetFont() const {
     return _font;
+}
+
+void Element::SetOnEnterCallback(const std::function<void(EventData& event)>& callback) {
+    _onEnter->Subscribe(callback);
+}
+
+void Element::SetOnLeaveCallback(const std::function<void(EventData& event)>& callback) {
+    _onLeave->Subscribe(callback);
+}
+
+void Element::SetOnHoverCallback(const std::function<void(EventData& event)>& callback) {
+    _onHover->Subscribe(callback);
+}
+
+void Element::SetOnMouseDownCallback(const std::function<void(EventData& event)>& callback) {
+	_onMouseDown->Subscribe(callback);
+}
+
+void Element::SetOnMouseUpCallback(const std::function<void(EventData& event)>& callback) {
+	_onMouseUp->Subscribe(callback);
+}
+
+void Element::SetOnMouseClickCallback(const std::function<void(EventData& event)>& callback) {
+	_onMouseClick->Subscribe(callback);
+}
+
+void Element::SetOnMouseDblClickCallback(const std::function<void(EventData& event)>& callback) {
+	_onMouseDblClick->Subscribe(callback);
+}
+
+void Element::SetOnStartDragCallback(const std::function<void(EventData& event)>& callback) {
+	_onStartDrag->Subscribe(callback);
+}
+
+void Element::SetOnEndDragCallback(const std::function<void(EventData& event)>& callback) {
+	_onEndDrag->Subscribe(callback);
+}
+
+void Element::ToggleEnable() {
+    _enabled = !_enabled;
+}
+
+void Element::SetEnable(bool new_enable) {
+    _enabled = new_enable;
+}
+
+bool Element::IsEnabled() const {
+    return _enabled;
+}
+
+void Element::HandleMouseMovement(bool& didMouseMove, bool& didMouseJustEnter, bool& didMouseHover, bool& didMouseJustLeave) {
+	if (didMouseMove && didMouseJustEnter) {
+		_onEnter->Trigger(_onEnter->data);
+	}
+	if (didMouseHover) {
+		_onHover->Trigger(_onHover->data);
+	}
+	if (didMouseMove && didMouseJustLeave) {
+		_onLeave->Trigger(_onLeave->data);
+	}
+    if(_wasMousePressedInElement && didMouseMove) {
+        _isDragging = true;
+		_onStartDrag->Trigger(_onStartDrag->data);
+	}
+	if (_isDragging && _wasMouseReleasedInElement) {
+        _isDragging = false;
+		_onEndDrag->Trigger(_onEndDrag->data);
+	}
+}
+
+void Element::HandleKeyboard(bool& /*isMouseInElement*/, InputSystem* /*input*/) {
+	
+}
+
+void Element::HandleMouseClicks(bool& isMouseInElement, InputSystem* input, bool& didMouseJustLeave) {
+	HandleLeftMouseButton(isMouseInElement, input, didMouseJustLeave);
+	HandleRightMouseButton(isMouseInElement, input, didMouseJustLeave);
+	HandleMiddleMouseButton(isMouseInElement, input, didMouseJustLeave);
+}
+
+void Element::HandleLeftMouseButton(bool& isMouseInElement, InputSystem* input, bool& didMouseJustLeave) {
+	if (isMouseInElement && input->WasKeyJustPressed(KeyCode::LBUTTON)) {
+		_wasMousePressedInElement = input->IsKeyDown(KeyCode::LBUTTON);
+		auto& data = _onMouseDown->data;
+		data.button = 0;
+		data.keycode = _parentCanvas->GetInput()->ConvertKeyCodeToScanCode(KeyCode::LBUTTON);
+		data.key = static_cast<std::underlying_type_t<KeyCode>>(KeyCode::LBUTTON);
+		_onMouseDown->Trigger(data);
+	}
+	if (input->WasKeyJustReleased(KeyCode::LBUTTON)) {
+		if (!didMouseJustLeave && isMouseInElement && _wasMousePressedInElement) {
+			_wasMouseReleasedInElement = input->IsKeyUp(KeyCode::LBUTTON);
+		}
+	}
+	bool wasMouseClickedInElement = _wasMousePressedInElement && _wasMouseReleasedInElement;
+	if (wasMouseClickedInElement) {
+        _wasMouseReleasedInElement = false;
+        _wasMousePressedInElement = false;
+		auto& data = _onMouseClick->data;
+		data.button = 0;
+		data.keycode = _parentCanvas->GetInput()->ConvertKeyCodeToScanCode(KeyCode::LBUTTON);
+		data.key = static_cast<std::underlying_type_t<KeyCode>>(KeyCode::LBUTTON);
+		_onMouseClick->Trigger(data);
+	}
+	if (isMouseInElement && input->WasKeyJustReleased(KeyCode::LBUTTON)) {
+		auto& data = _onMouseUp->data;
+		data.button = 0;
+		data.keycode = _parentCanvas->GetInput()->ConvertKeyCodeToScanCode(KeyCode::LBUTTON);
+		data.key = static_cast<std::underlying_type_t<KeyCode>>(KeyCode::LBUTTON);
+		_onMouseUp->Trigger(data);
+	}
+
+	if (isMouseInElement && input->WasMouseLeftDoubleClicked()) {
+		auto& data = _onMouseDblClick->data;
+		data.button = 0;
+		data.keycode = _parentCanvas->GetInput()->ConvertKeyCodeToScanCode(KeyCode::LBUTTON);
+		data.key = static_cast<std::underlying_type_t<KeyCode>>(KeyCode::LBUTTON);
+		_onMouseDblClick->Trigger(data);
+	}
+}
+
+void Element::HandleRightMouseButton(bool& isMouseInElement, InputSystem* input, bool& didMouseJustLeave) {
+	if (isMouseInElement && input->WasKeyJustPressed(KeyCode::RBUTTON)) {
+		_wasMousePressedInElement = input->IsKeyDown(KeyCode::RBUTTON);
+		auto& data = _onMouseDown->data;
+		data.button = 1;
+		data.keycode = _parentCanvas->GetInput()->ConvertKeyCodeToScanCode(KeyCode::RBUTTON);
+		data.key = static_cast<std::underlying_type_t<KeyCode>>(KeyCode::RBUTTON);
+		_onMouseDown->Trigger(data);
+	}
+    if(input->WasKeyJustReleased(KeyCode::RBUTTON)) {
+        if(!didMouseJustLeave && isMouseInElement && _wasMousePressedInElement) {
+            _wasMouseReleasedInElement = input->IsKeyUp(KeyCode::RBUTTON);
+        }
+    }
+    bool wasMouseClickedInElement = _wasMousePressedInElement && _wasMouseReleasedInElement;
+    if(wasMouseClickedInElement) {
+        _wasMouseReleasedInElement = false;
+        _wasMousePressedInElement = false;
+        auto& data = _onMouseClick->data;
+        data.button = 0;
+        data.keycode = _parentCanvas->GetInput()->ConvertKeyCodeToScanCode(KeyCode::RBUTTON);
+        data.key = static_cast<std::underlying_type_t<KeyCode>>(KeyCode::RBUTTON);
+        _onMouseClick->Trigger(data);
+    }
+	if (isMouseInElement && input->WasKeyJustReleased(KeyCode::RBUTTON)) {
+		auto& data = _onMouseUp->data;
+		data.button = 1;
+		data.keycode = _parentCanvas->GetInput()->ConvertKeyCodeToScanCode(KeyCode::RBUTTON);
+		data.key = static_cast<std::underlying_type_t<KeyCode>>(KeyCode::RBUTTON);
+		_onMouseUp->Trigger(data);
+	}
+
+	if (isMouseInElement && input->WasMouseRightDoubleClicked()) {
+		auto& data = _onMouseDblClick->data;
+		data.button = 1;
+		data.keycode = _parentCanvas->GetInput()->ConvertKeyCodeToScanCode(KeyCode::RBUTTON);
+		data.key = static_cast<std::underlying_type_t<KeyCode>>(KeyCode::RBUTTON);
+		_onMouseDblClick->Trigger(data);
+	}
+}
+
+void Element::HandleMiddleMouseButton(bool& isMouseInElement, InputSystem* input, bool& didMouseJustLeave) {
+	if (isMouseInElement && input->WasKeyJustPressed(KeyCode::MBUTTON)) {
+		_wasMousePressedInElement = input->IsKeyDown(KeyCode::MBUTTON);
+		auto& data = _onMouseDown->data;
+		data.button = 2;
+		data.keycode = _parentCanvas->GetInput()->ConvertKeyCodeToScanCode(KeyCode::MBUTTON);
+		data.key = static_cast<std::underlying_type_t<KeyCode>>(KeyCode::MBUTTON);
+		_onMouseDown->Trigger(data);
+	}
+
+	if (!didMouseJustLeave && isMouseInElement && _wasMousePressedInElement && input->WasKeyJustReleased(KeyCode::MBUTTON)) {
+		_wasMousePressedInElement = false;
+		auto& data = _onMouseClick->data;
+		data.button = 2;
+		data.keycode = _parentCanvas->GetInput()->ConvertKeyCodeToScanCode(KeyCode::MBUTTON);
+		data.key = static_cast<std::underlying_type_t<KeyCode>>(KeyCode::MBUTTON);
+		_onMouseClick->Trigger(data);
+	}
+
+	if (isMouseInElement && input->WasKeyJustReleased(KeyCode::MBUTTON)) {
+		auto& data = _onMouseUp->data;
+		data.button = 2;
+		data.keycode = _parentCanvas->GetInput()->ConvertKeyCodeToScanCode(KeyCode::MBUTTON);
+		data.key = static_cast<std::underlying_type_t<KeyCode>>(KeyCode::MBUTTON);
+		_onMouseUp->Trigger(data);
+	}
+
+	if (isMouseInElement && input->WasMouseMiddleDoubleClicked()) {
+		auto& data = _onMouseDblClick->data;
+		data.button = 2;
+		data.keycode = _parentCanvas->GetInput()->ConvertKeyCodeToScanCode(KeyCode::MBUTTON);
+		data.key = static_cast<std::underlying_type_t<KeyCode>>(KeyCode::MBUTTON);
+		_onMouseDblClick->Trigger(data);
+	}
 }
 
 } //End UI

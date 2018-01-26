@@ -18,17 +18,11 @@ using XMLElement = tinyxml2::XMLElement;
 namespace DataUtils {
 
 void ValidateXmlElement(const XMLElement& element,
+                        const std::string& name,
                         const std::string& requiredChildElements,
                         const std::string& requiredAttributes,
                         const std::string& optionalChildElements = std::string(""),
                         const std::string& optionalAttributes = std::string(""));
-
-
-void ValidateXmlElement(const XMLElement& element,
-                        const char* requiredChildElements,
-                        const char* requiredAttributes,
-                        const char* optionalChildElements = nullptr,
-                        const char* optionalAttributes = nullptr);
 
 unsigned int GetAttributeCount(const XMLElement &element);
 unsigned int GetChildElementCount(const XMLElement &element, const std::string& elementName = std::string(""));

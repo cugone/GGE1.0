@@ -3,6 +3,7 @@
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Math/Matrix4.hpp"
 
+#include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Renderer/SimpleRenderer.hpp"
 #include "Engine/Renderer/TextureBase.hpp"
 
@@ -216,9 +217,10 @@ Camera3D::CameraFrustum Camera3D::CalcFrustum(const Vector3& worldUp /*= Vector3
     return std::move(frustum);
 }
 
-void Camera3D::SetRenderTarget(TextureBase* target) {
+void Camera3D::SetRenderTarget(TextureBase* target, TextureBase* depthstencil /* = nullptr*/) {
     ASSERT_OR_DIE(target && target->IsValid() && target->IsRenderTarget(), "Camera3D::SetRenderTarget: target not valid nor a render target.");
     _renderTarget = target;
+    _renderDepthStencil = depthstencil;
 }
 
 TextureBase* Camera3D::GetRenderTarget() const {
@@ -240,15 +242,63 @@ Vector3 Camera3D::ScreenToWorldCoordinates(SimpleRenderer* renderer, const Vecto
     //  You can now multiply by the vector(ScreenX, ScreenY, Near, 1) to get the world position of the mouse cursor on the near clipping plane in world space.
     //If you need to do object picking at some point, you can take that point and the camera's position to generate a ray to do ray-collision test to find the object the cursor is pointing at.
     
+    auto screen_extents = Vector2(renderer->_rhi_output->GetDimensions());
+    auto screen_half_extents = screen_extents * 0.50f;
+    auto screen_ndc_x = MathUtils::RangeMap(screen_coords.x, 0.0f, screen_extents.x, -1.0f, 1.0f);
+    auto screen_ndc_y = MathUtils::RangeMap(screen_coords.y, 0.0f, screen_extents.y, 1.0f, -1.0f);
+    Vector4 ndc = Vector4(screen_ndc_x, screen_ndc_y, 0.0f, 1.0f);
+    //auto inv_S = Matrix4::CreateScaleMatrix(Vector2(1.0f / screen_half_extents.x, 1.0f / screen_half_extents.y));
+    //auto inv_T = Matrix4::CreateTranslationMatrix(-screen_half_extents);
+    //auto inv_ndc = inv_S * inv_T;
+
     auto inv_projection = Matrix4::CalculateInverse(renderer->_matrix_data.projection);
     auto inv_view = Matrix4::CalculateInverse(renderer->_matrix_data.view);
-    auto inv_model = Matrix4::CalculateInverse(renderer->_matrix_data.model);
+    
+    auto projection = renderer->_matrix_data.projection;
+    auto view = renderer->_matrix_data.view;
 
-    return Vector3(inv_projection * inv_view * inv_model * Vector4(Vector3(screen_coords, m_nearDistance), 1.0f));
+    auto screen_coords_vec = Vector4(Vector3(screen_coords, 0.0), 1.0f);
+    auto non_homogeneous_screen_coords = inv_view * inv_projection * ndc;// *screen_coords_vec;
+    auto homogeneous_screen_coords = Vector4::CalcHomogeneous(non_homogeneous_screen_coords);
+
+    return Vector3(homogeneous_screen_coords);
 }
 
-Vector2 Camera3D::WorldToScreenCoordinates(SimpleRenderer* /*renderer*/, const Vector3& /*world_coords*/) {
-    return Vector2::ZERO;
+Vector3 Camera3D::NdcCoordinatesFromScreenCoords(SimpleRenderer* renderer, const Vector2& screen_coords) {
+
+    //You need the inverse of the camera_to_screen matrix.
+    //The 3D pipeline overall looks like this:
+    //  model->world->camera->viewport->screen
+    //The world_to_camera matrix is the usual rotation / translation matrix you construct for a 3D camera system.Inverting it is trivial : https://stackoverflow.com/questions/695043/how-does-one-convert-world-coordinates-to-camera-coordinates
+    //The camera->viewport matrix is your projection matrix; inverting that is trivial if you know how to construct it in the first place : http://www.gamedev.net/topic/478055-perspective-projection-matrix/
+    //The viewport_to_screen matrix is generally a simple transformation that maps the coordinate space[-1, -1] : [1, 1] into [0, 0]:[ScreenWidth, ScreenHeight].
+    //  You don't usually need to generate this matrix yourself as it's taken care of by the graphics hardware automatically.
+    //  The order of operations of the matrix is to scale by half the screen size, then to translate by half the screen size.
+    //  Inverting those operations is basic algebra.
+    //Multiply those inverted matrices together in the opposite order to get your screen->world matrix.
+    //  You can now multiply by the vector(ScreenX, ScreenY, Near, 1) to get the world position of the mouse cursor on the near clipping plane in world space.
+    //If you need to do object picking at some point, you can take that point and the camera's position to generate a ray to do ray-collision test to find the object the cursor is pointing at.
+
+    auto screen_extents = Vector2(renderer->_rhi_output->GetDimensions());
+    auto screen_half_extents = screen_extents * 0.50f;
+    auto screen_ndc_x = MathUtils::RangeMap(screen_coords.x, 0.0f, screen_extents.x, -1.0f, 1.0f);
+    auto screen_ndc_y = MathUtils::RangeMap(screen_coords.y, 0.0f, screen_extents.y, 1.0f, -1.0f);
+    Vector4 ndc = Vector4(screen_ndc_x, screen_ndc_y, 0.0f, 1.0f);
+
+    auto non_homogeneous_screen_coords = ndc;// *screen_coords_vec;
+    auto homogeneous_screen_coords = Vector4::CalcHomogeneous(non_homogeneous_screen_coords);
+
+    return Vector3(homogeneous_screen_coords);
+}
+
+Vector2 Camera3D::WorldToScreenCoordinates(SimpleRenderer* renderer, const Vector3& world_coords) {
+
+    auto projection = renderer->_matrix_data.projection;
+    auto view = renderer->_matrix_data.view;
+    auto non_homogeneous_point = view * projection * Vector4(world_coords, 1.0f);
+    //auto non_homogeneous_point = inv_projection * inv_view * inv_model * Vector4(Vector3(screen_coords, m_nearDistance), 1.0f);
+    auto homogeneous_point = Vector4::CalcHomogeneous(non_homogeneous_point);
+    return Vector3(homogeneous_point);// *Vector3(Vector2(renderer->_rhi_output->GetDimensions()), 1.0f);
 }
 
 void Camera3D::SetProjectionMatrix(Matrix4&& mat) {

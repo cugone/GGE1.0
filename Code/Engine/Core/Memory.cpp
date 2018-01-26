@@ -225,6 +225,9 @@ void Memory::PrintBasicMemoryProfile(SimpleRenderer* renderer) {
 
 void Memory::RenderMemoryGraph(SimpleRenderer* renderer) {
 
+	renderer->SetModelMatrix(Matrix4::GetIdentity());
+	renderer->SetViewMatrix(Matrix4::GetIdentity());
+
     const auto& window_dimensions = renderer->_rhi_output->GetDimensions();
     float window_height = static_cast<float>(window_dimensions.y);
     float window_width = static_cast<float>(window_dimensions.x);

@@ -10,4 +10,8 @@ Event::Event(const EventType& eventType)
 
 Event::~Event() = default;
 
+void Event::Trigger() {
+    Trigger(data);
+}
+
 }

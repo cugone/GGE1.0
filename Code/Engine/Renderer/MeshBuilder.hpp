@@ -11,8 +11,8 @@ class SimpleRenderer;
 
 struct draw_instruction_t {
     PrimitiveType type;
-    unsigned int start_index;
-    unsigned int count;
+    std::size_t start_index;
+    std::size_t count;
     bool uses_index_buffer;
 };
 

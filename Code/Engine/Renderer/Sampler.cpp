@@ -61,7 +61,7 @@ bool Sampler::LoadFromXml(RHIDevice* device, const XMLElement& element) {
     auto xml_sampler = element.FirstChildElement("sampler");
     if(xml_sampler != nullptr) {
 
-        DataUtils::ValidateXmlElement(*xml_sampler, "", "", "filter,textureAddress,lod", "borderColor,test,maxAF");
+        DataUtils::ValidateXmlElement(*xml_sampler, "sampler", "", "", "filter,textureAddress,lod", "borderColor,test,maxAF");
 
         desc.borderColor = DataUtils::ParseXmlAttribute(*xml_sampler, "borderColor", desc.borderColor);
         
@@ -74,7 +74,7 @@ bool Sampler::LoadFromXml(RHIDevice* device, const XMLElement& element) {
         auto xml_filter = xml_sampler->FirstChildElement("filter");
         if(xml_filter != nullptr) {
             
-            DataUtils::ValidateXmlElement(*xml_filter, "", "min,mag,mip,mode");
+            DataUtils::ValidateXmlElement(*xml_filter, "filter", "", "min,mag,mip,mode");
 
             std::string filter_str = "point";
             filter_str = DataUtils::ParseXmlAttribute(*xml_filter, "min", filter_str);
@@ -96,7 +96,7 @@ bool Sampler::LoadFromXml(RHIDevice* device, const XMLElement& element) {
         auto xml_textureAddress = xml_sampler->FirstChildElement("textureAddress");
         if(xml_textureAddress != nullptr) {
             
-            DataUtils::ValidateXmlElement(*xml_textureAddress, "", "", "", "u,v,w");
+            DataUtils::ValidateXmlElement(*xml_textureAddress, "textureAddress", "", "", "", "u,v,w");
 
             std::string str = "wrap";
             str = DataUtils::ParseXmlAttribute(*xml_textureAddress, "u", str);
@@ -114,7 +114,7 @@ bool Sampler::LoadFromXml(RHIDevice* device, const XMLElement& element) {
 
         auto xml_lod = xml_sampler->FirstChildElement("lod");
         if(xml_lod != nullptr) {
-            DataUtils::ValidateXmlElement(*xml_lod, "", "", "", "min,max,mipmapbias");
+            DataUtils::ValidateXmlElement(*xml_lod, "lod", "", "", "", "min,max,mipmapbias");
             desc.minLOD = DataUtils::ParseXmlAttribute(*xml_lod, "min", desc.minLOD);
             desc.maxLOD = DataUtils::ParseXmlAttribute(*xml_lod, "max", desc.maxLOD);
             desc.mipmapLODBias = DataUtils::ParseXmlAttribute(*xml_lod, "mipmapbias", desc.mipmapLODBias);

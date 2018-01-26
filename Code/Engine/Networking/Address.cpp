@@ -85,9 +85,11 @@ std::vector<Net::Address> GetAddresses(unsigned int addr, unsigned short port, b
 
 std::vector<Net::Address> GetMyAddresses(unsigned short port) {
 
-    std::string name;
-    name.resize(256);
-    auto ret_val = ::gethostname(name.data(), name.size());
+    std::size_t name_size = 256;
+    std::vector<char> name_buffer;
+    name_buffer.resize(name_size);
+    auto ret_val = ::gethostname(name_buffer.data(), static_cast<int>(name_buffer.size()));
+    std::string name(name_buffer.begin(), name_buffer.end());
     if(ret_val == 0) {
         name = name.substr(0, name.find_first_of('\0'));
         name.shrink_to_fit();

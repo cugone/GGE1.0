@@ -288,6 +288,10 @@ public:
     bool WasMouseJustScrolledUp() const;
     bool WasMouseJustScrolledDown() const;
 
+	bool WasMouseLeftDoubleClicked() const;
+	bool WasMouseMiddleDoubleClicked() const;
+	bool WasMouseRightDoubleClicked() const;
+
     virtual void BeginFrame() override;
     virtual void Render() const override;
     virtual void EndFrame() override;
@@ -303,6 +307,7 @@ public:
     int GetMouseWheelPositionNormalized() const;
 
     const XboxController& GetXboxController(int controllerIndex) const;
+	XboxController& GetXboxController(int controllerIndex);
 
     void ShowMouseCursor(bool isNowVisible);
     void SetMouseCursor(Texture2D* img, const Vector2& hotspot = Vector2::ZERO);
@@ -321,6 +326,15 @@ public:
 
 protected:
 private:
+
+	bool DidKeyChange(const KeyCode& keyIndex) const;
+	bool DidKeyNotChange(const KeyCode& keyIndex) const;
+
+	void SetMouseDoubleClickState(bool value);
+	bool SetMouseMiddleDoubleClicked(bool value);
+	bool SetMouseRightDoubleClicked(bool value);
+	bool SetMouseLeftDoubleClicked(bool value);
+
     void UpdateMouseWheel(const SystemMessage& msg);
     void UpdateMousePosition(const SystemMessage& msg);
 
@@ -334,4 +348,7 @@ private:
     AABB2 m_mouseArea = AABB2{};
     int m_mouseWheelPosition = 0;
     bool m_isMouseLocked = false;
+	bool m_wasMouseLeftDoubleClicked = false;
+	bool m_wasMouseRightDoubleClicked = false;
+	bool m_wasMouseMiddleDoubleClicked = false;
 };

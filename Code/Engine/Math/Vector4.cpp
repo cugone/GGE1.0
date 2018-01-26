@@ -2,6 +2,7 @@
 
 #include <sstream>
 
+#include "Engine/Math/Vector2.hpp"
 #include "Engine/Math/Vector3.hpp"
 #include "Engine/Math/MathUtils.hpp"
 
@@ -68,6 +69,16 @@ Vector4::Vector4(const IntVector4& intVector)
 Vector4::Vector4() {
     /* DO NOTHING */
 }
+
+Vector4::Vector4(const Vector2& vec2, float initialZ, float initialW)
+    : x(vec2.x)
+    , y(vec2.y)
+    , z(initialZ)
+    , w(initialW)
+{
+    /* DO NOTHING */
+}
+
 Vector4::Vector4(const Vector3& vec3, float initialW)
     : x(vec3.x)
     , y(vec3.y)

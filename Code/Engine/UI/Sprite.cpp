@@ -4,9 +4,11 @@
 #include "Engine/Renderer/SpriteAnimation.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
 
+#include "Engine/UI/Canvas.hpp"
+
 namespace UI {
 
-Sprite::Sprite(const SpriteSheet& sprite)
+Sprite::Sprite(SpriteSheet* sprite)
     : _image{new SpriteAnimation{ sprite, 0.0f, SpriteAnimation::SpriteAnimMode::PLAY_TO_END, 0, 0 }}
 {
     /* DO NOTHING */
@@ -18,9 +20,21 @@ Sprite::Sprite(const SpriteAnimation& sprite)
     /* DO NOTHING */
 }
 
-void Sprite::SetImage(const SpriteSheet& sprite) {
-    delete _image;
-    _image = new SpriteAnimation(sprite, 1.0f / sprite.GetNumSprites(), SpriteAnimation::SpriteAnimMode::PLAY_TO_END, 0, sprite.GetNumSprites());
+Sprite::Sprite(UI::Canvas* parentCanvas)
+    : UI::Element(parentCanvas)
+{
+    /* DO NOTHING */
+}
+
+SpriteAnimation* Sprite::GetImage() const {
+    return _image;
+}
+
+void Sprite::SetImage(SpriteSheet* sprite) {
+    if(sprite) {
+        delete _image;
+        _image = new SpriteAnimation(sprite, 1.0f / sprite->GetNumSprites(), SpriteAnimation::SpriteAnimMode::PLAY_TO_END, 0, sprite->GetNumSprites());
+    }
 }
 
 void Sprite::SetImage(const SpriteAnimation& sprite) {
@@ -70,9 +84,10 @@ void Sprite::Render(SimpleRenderer* renderer) const {
     renderer->SetMaterial(nullptr);
 }
 
-void Sprite::Update(float deltaSeconds, const IntVector2& mouse_position) {
-    bool is_mouse_inside = _bounds.IsPointInside(Vector2(mouse_position));
-    if(_enabled && is_mouse_inside) {
+void Sprite::Update(float deltaSeconds, const Vector2& mouse_position) {
+
+    if(IsEnabled()) {
+        Element::Update(deltaSeconds, mouse_position);
         _image->Update(deltaSeconds);
     }
 }

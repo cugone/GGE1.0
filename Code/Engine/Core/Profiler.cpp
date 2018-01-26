@@ -241,37 +241,57 @@ void DeleteTree(profiler_node_t*& head) {
     delete head;
 }
 
+void Profiler::RegisterCommands() {
+	g_theConsole->RegisterCommand("profiler_pause",
+		[&](const std::string& /*args*/) { Profiler::ProfilerPause(); }
+	, "Pauses the profiler.");
+
+	g_theConsole->RegisterCommand("profiler_resume",
+		[&](const std::string& /*args*/) { Profiler::ProfilerResume(); }
+	, "Resumes the profiler.");
+
+	g_theConsole->RegisterCommand("profiler_snapshot",
+		[&](const std::string& /*args*/) { Profiler::ProfilerSnapshot(); }
+	, "Profiles one frame.");
+
+	g_theConsole->RegisterCommand("profiler_report",
+		[&](const std::string& args) {
+		Arguments arg_set(args);
+
+		profiler_report_type type = profiler_report_type::FLAT;
+		std::string type_str;
+		if (arg_set.GetNext(type_str)) {
+			if (type_str == "flat") {
+				type = profiler_report_type::FLAT;
+			}
+			else if (type_str == "tree") {
+				type = profiler_report_type::TREE;
+			}
+		}
+
+		Profiler::PrintReport(type);
+	}
+	, "Prints a profile report to the log file.");
+
+	g_theConsole->RegisterCommand("memstat",
+		[&](const std::string& /*args*/) {
+		g_theProfiler->ToggleOpenClosed();
+	}
+	, "Shows/Hides Profile Visualizer");
+}
+
+void Profiler::UnregisterCommands() {
+	if(g_theConsole) {
+		g_theConsole->UnregisterCommand("memstat");
+		g_theConsole->UnregisterCommand("profiler_pause");
+		g_theConsole->UnregisterCommand("profiler_resume");
+		g_theConsole->UnregisterCommand("profiler_snapshot");
+		g_theConsole->UnregisterCommand("profiler_report");
+	}
+}
+
 void Profiler::Initialize() {
-    g_theConsole->RegisterCommand("profiler_pause",
-                                  [&](const std::string& /*args*/) { Profiler::ProfilerPause(); }
-    , "Pauses the profiler.");
-
-    g_theConsole->RegisterCommand("profiler_resume",
-                                  [&](const std::string& /*args*/) { Profiler::ProfilerResume(); }
-    , "Resumes the profiler.");
-
-    g_theConsole->RegisterCommand("profiler_snapshot",
-                                  [&](const std::string& /*args*/) { Profiler::ProfilerSnapshot(); }
-    , "Profiles one frame.");
-
-    g_theConsole->RegisterCommand("profiler_report",
-    [&](const std::string& args) {
-        Arguments arg_set(args);
-
-        profiler_report_type type = profiler_report_type::FLAT;
-        std::string type_str;
-        if(arg_set.GetNext(type_str)) {
-            if(type_str == "flat") {
-                type = profiler_report_type::FLAT;
-            } else if(type_str == "tree") {
-                type = profiler_report_type::TREE;
-            }
-        }
-
-        Profiler::PrintReport(type);
-    }
-    , "Prints a profile report to the log file.");
-
+	RegisterCommands();
 }
 
 void Profiler::BeginFrame() {
@@ -299,6 +319,9 @@ void Profiler::Render() const {
 }
 
 void Profiler::RenderProfilerGraph(SimpleRenderer* renderer) const {
+
+	renderer->SetModelMatrix(Matrix4::GetIdentity());
+	renderer->SetViewMatrix(Matrix4::GetIdentity());
 
     const auto& window_dimensions = renderer->_rhi_output->GetDimensions();
     float window_height = static_cast<float>(window_dimensions.y);
@@ -423,6 +446,7 @@ void Profiler::ProfilerSystemStartup() {
 
 }
 void Profiler::ProfilerSystemShutdown() {
+	UnregisterCommands();
 
     for(auto& tree_node : _completedList) {
         if(!tree_node) {
@@ -555,7 +579,7 @@ std::size_t Profiler::CalculateSiblingCount(profiler_node_t* node) {
 }
 std::size_t Profiler::CalculateDescendantsCount(profiler_node_t* node) {
     VerifyThreadSymmetry(__FUNCTION__);
-    unsigned long node_count = 0;
+    std::size_t node_count = 0;
     auto cur = node;
     while(cur) {
         node_count = 1 + CalculateSiblingCount(cur);
