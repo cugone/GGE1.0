@@ -141,10 +141,92 @@ void XboxController::SetMotorSpeed(int controllerNumber, bool isLeftMotor, unsig
 	}
 }
 
+<<<<<<< HEAD
 void XboxController::Update(int controllerNumber) { // can be 0,1,2,3; API supports up to 4 Xbox controllers at once
 	XINPUT_STATE xboxControllerState;
 	memset(&xboxControllerState, 0, sizeof(xboxControllerState));
 	DWORD errorStatus = XInputGetState(controllerNumber, &xboxControllerState);
+=======
+void XboxController::SetRightMotorSpeedToMax(int controllerNumber) {
+    SetRightMotorSpeedAsPercentage(controllerNumber, 1.0f);
+}
+
+void XboxController::SetLeftMotorSpeedToMax(int controllerNumber) {
+    SetLeftMotorSpeedAsPercentage(controllerNumber, 1.0f);
+}
+
+void XboxController::SetLeftMotorSpeedAsPercentage(int controllerNumber, float speed) {
+    SetLeftMotorSpeed(controllerNumber, static_cast<unsigned short>(static_cast<float>((std::numeric_limits<unsigned short>::max)()) * speed));
+}
+
+void XboxController::SetRightMotorSpeedAsPercentage(int controllerNumber, float speed) {
+    SetRightMotorSpeed(controllerNumber, static_cast<unsigned short>(static_cast<float>((std::numeric_limits<unsigned short>::max)()) * speed));
+}
+
+void XboxController::SetRightMotorSpeed(int controllerNumber, unsigned short speed) {
+    SetMotorSpeed(controllerNumber, false, speed);
+}
+
+void XboxController::SetLeftMotorSpeed(int controllerNumber, unsigned short speed) {
+    SetMotorSpeed(controllerNumber, true, speed);
+}
+
+void XboxController::StopLeftMotor(int controllerNumber) {
+    SetLeftMotorSpeed(controllerNumber, 0);
+}
+
+void XboxController::StopRightMotor(int controllerNumber) {
+    SetRightMotorSpeed(controllerNumber, 0);
+}
+
+
+void XboxController::StopMotors(int controllerNumber) {
+    StopLeftMotor(controllerNumber);
+    StopRightMotor(controllerNumber);
+}
+
+void XboxController::SetMotorSpeed(int controllerNumber, bool isLeftMotor, unsigned short value) {
+    XINPUT_VIBRATION vibration;
+    memset(&vibration, 0, sizeof(vibration));
+    if (isLeftMotor) {
+        vibration.wLeftMotorSpeed = value;
+    }
+    else {
+        vibration.wRightMotorSpeed = value;
+    }
+    DWORD errorStatus = XInputSetState(controllerNumber, &vibration);
+    if (errorStatus == ERROR_SUCCESS) {
+        return;
+    } else if (errorStatus == ERROR_DEVICE_NOT_CONNECTED) {
+        if (m_isConnected) {
+            m_isConnectedChanged = true;
+            m_isConnected = false;
+        }
+        else {
+            m_isConnectedChanged = false;
+        }
+        return;
+    } else {
+        return;
+    }
+}
+
+void XboxController::Update(int controllerNumber) // can be 0,1,2,3; API supports up to 4 Xbox controllers at once
+{
+    XINPUT_STATE xboxControllerState;
+    memset(&xboxControllerState, 0, sizeof(xboxControllerState));
+    DWORD errorStatus = XInputGetState(controllerNumber, &xboxControllerState);
+
+    if(errorStatus == ERROR_SUCCESS) {
+        if(!m_isConnected) {
+            m_isConnectedChanged = true;
+            m_isConnected = true;
+        } else {
+            m_isConnectedChanged = false;
+        }
+        m_previousRawButtonState = m_currentRawButtonState;
+        m_currentRawButtonState = xboxControllerState.Gamepad.wButtons;
+>>>>>>> 250c99ae5abc6859bdd8dce1bf92f1e9bb25c01d
 
 	if (errorStatus == ERROR_SUCCESS) {
 		if (!m_isConnected) {

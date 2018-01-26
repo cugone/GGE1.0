@@ -46,6 +46,7 @@ public:
     const Vector2& GetLeftThumbPosition() const;
     const Vector2& GetRightThumbPosition() const;
 
+<<<<<<< HEAD
 	void SetRightMotorSpeedToMax();
 	void SetLeftMotorSpeedToMax();
 
@@ -58,6 +59,20 @@ public:
 	void StopLeftMotor();
 	void StopRightMotor();
 	void StopMotors();
+=======
+    void SetRightMotorSpeedToMax(int controllerNumber);
+    void SetLeftMotorSpeedToMax(int controllerNumber);
+
+    void SetRightMotorSpeedAsPercentage(int controllerNumber, float speed);
+    void SetLeftMotorSpeedAsPercentage(int controllerNumber, float speed);
+
+    void SetRightMotorSpeed(int controllerNumber, unsigned short speed);
+    void SetLeftMotorSpeed(int controllerNumber, unsigned short speed);
+
+    void StopLeftMotor(int controllerNumber);
+    void StopRightMotor(int controllerNumber);
+    void StopMotors(int controllerNumber);
+>>>>>>> 250c99ae5abc6859bdd8dce1bf92f1e9bb25c01d
 
     float GetLeftTriggerPosition() const;
     float GetRightTriggerPosition() const;
@@ -68,6 +83,7 @@ public:
 
 protected:
     void UpdateExternalButtonStateHelper();
+<<<<<<< HEAD
 	void SetMotorSpeed(int controllerNumber, bool isLeftMotor, unsigned short value);
 private:
 	KeyState m_xboxControllerButtons[GAMEPADCODE_MAX] = { false };
@@ -81,4 +97,20 @@ private:
     bool m_motorStateChanged = false;
 	bool m_isConnected = false;
 	bool m_isConnectedChanged = false;
+=======
+    void SetMotorSpeed(int controllerNumber, bool isLeftMotor, unsigned short value);
+private:
+    KeyState m_xboxControllerButtons[GAMEPADCODE_MAX];
+    Vector2 m_leftThumbDistance;
+    Vector2 m_rightThumbDistance;
+    Vector2 m_triggerDistance;
+    unsigned short m_previousRawButtonState;
+    unsigned short m_currentRawButtonState;
+    unsigned short m_previousLeftMotorState;
+    unsigned short m_currentLeftMotorState;
+    unsigned short m_previousRightMotorState;
+    unsigned short m_currentRightMotorState;
+    bool m_isConnected;
+    bool m_isConnectedChanged;
+>>>>>>> 250c99ae5abc6859bdd8dce1bf92f1e9bb25c01d
 };
